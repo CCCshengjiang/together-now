@@ -3,9 +3,9 @@ spring:
     name: together-now-backend
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/together_now #你的数据库地址
-    username: root # 你的数据库用户名
-    password: root # 你的数据库密码
+    url: jdbc:mysql://localhost:3306/together_now # 自己数据库地址
+    username: root # 自己数据库用户名
+    password: root # 自己数据库密码
 
 mybatis-plus:
   global-config:

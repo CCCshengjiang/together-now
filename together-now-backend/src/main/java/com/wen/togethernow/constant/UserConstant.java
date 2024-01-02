@@ -1,0 +1,30 @@
+package com.wen.togethernow.constant;
+
+/**
+ * 用户常量
+ *
+ * @author Cwb
+ */
+public class UserConstant {
+    // 不允许类被实例化
+    private UserConstant() {}
+    /**
+     * 盐值：混淆密码
+     */
+    public static final String SALT = "wen";
+
+    /**
+     * 用户登录态键
+     */
+    public static final String USER_LOGIN_STATUS = "userLoginStatus";
+
+    /**
+     * 管理员角色
+     */
+    public static final int ADMIN_ROLE = 1;
+
+    /**
+     * 普通用户角色
+     */
+    public static final int DEFAULT_ROLE = 0;
+}
