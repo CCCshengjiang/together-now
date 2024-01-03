@@ -2,8 +2,8 @@ package com.wen.togethernow.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.wen.togethernow.common.BaseResponse;
-import com.wen.togethernow.common.utils.ReturnUtil;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.wen.togethernow.exception.BusinessException;
 import com.wen.togethernow.model.domain.User;
 import com.wen.togethernow.model.request.UserSearchRequest;
@@ -13,12 +13,12 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.annotations.Options;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.wen.togethernow.common.BaseCode.*;
 import static com.wen.togethernow.constant.UserConstant.*;
@@ -26,7 +26,7 @@ import static com.wen.togethernow.constant.UserConstant.*;
 /**
  * 用户服务实现类
  *
- * @author Cwb
+ * @author wen
  */
 @Service
 @Slf4j
@@ -226,6 +226,62 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             safetyUsers.add(getSafetyUser(user));
         }
         return safetyUsers;
+    }
+
+    /**
+     * 使用缓存根据标签查询用户
+     *
+     * @param tagNameList 标签名
+     * @return 查询到的脱敏用户列表
+     */
+    @Override
+    public List<User> userSearchByTags(List<String> tagNameList) {
+        if (tagNameList.isEmpty()) {
+            throw new BusinessException(PARAMS_NULL_ERROR, "标签为空");
+        }
+        // 先查询所有用户
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        List<User> users = userMapper.selectList(queryWrapper);
+        // 根据标签查询
+        List<User> safetyUsers = new ArrayList<>();
+        Gson gson = new Gson();
+        for (User user : users) {
+
+            String tags = user.getTags();
+            // tags从JSON转化为String格式
+            Set<String> tagNameSet = gson.fromJson(tags, new TypeToken<Set<String>>(){}.getType());
+            // 判断是否为空
+            tagNameSet = Optional.ofNullable(tagNameSet).orElse(new HashSet<>());
+            // 用户信息脱敏
+            for (String tagStr : tagNameList) {
+                if (tagNameSet.contains(tagStr)) {
+                    safetyUsers.add(getSafetyUser(user));
+                }
+            }
+        }
+        return safetyUsers;
+    }
+
+    /**
+     * 使用SQL根据标签查询用户
+     *
+     * @param tagNameList 标签
+     * @return 脱敏的用户信息
+     */
+    @Deprecated(since="2.0", forRemoval=true)
+    private List<User> userSearchByTagsBySql(List<String> tagNameList) {
+        if (tagNameList.isEmpty()) {
+            throw new BusinessException(PARAMS_NULL_ERROR, "标签为空");
+        }
+        // 模糊匹配查询
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        for (String tagName : tagNameList) {
+            queryWrapper = queryWrapper.like("tags", tagName);
+        }
+        List<User> users = userMapper.selectList(queryWrapper);
+        return users.stream()
+                .map(this::getSafetyUser)
+                .collect(Collectors.toList());
     }
 
     /**

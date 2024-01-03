@@ -66,5 +66,12 @@ public interface UserService extends IService<User> {
      */
     List<User> userSearch(UserSearchRequest userSearchRequest);
 
+    /**
+     * 根据标签搜索用户接口
+     *
+     * @param tagNameList 标签名
+     * @return 返回脱敏用户列表
+     */
+    List<User> userSearchByTags(List<String> tagNameList);
 
 }

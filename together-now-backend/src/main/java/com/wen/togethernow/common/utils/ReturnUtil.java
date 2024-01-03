@@ -8,7 +8,10 @@ import com.wen.togethernow.common.BaseResponse;
  *
  * @author wen
  */
-public class ReturnUtil<T> {
+public class ReturnUtil {
+    // 不允许实例化 ReturnUtil 对象
+    private ReturnUtil(){}
+
     /**
      * 成功返回
      *

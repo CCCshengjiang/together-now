@@ -5,7 +5,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/together_now # 自己数据库地址
     username: root # 自己数据库用户名
-    password: root # 自己数据库密码
+    password: 123456789c # 自己数据库密码
   session:
     timeout: 86400
 
@@ -16,6 +16,9 @@ server:
   address: 0.0.0.0
 
 mybatis-plus:
+  configuration:
+    # 就是这行代码让mybatis可以输出sql语句
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
       logic-delete-field: flag # 全局逻辑删除的实体字段名(since 3.3.0,配置后可以忽略不配置步骤2)

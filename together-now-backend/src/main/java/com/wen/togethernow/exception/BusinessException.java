@@ -1,7 +1,6 @@
 package com.wen.togethernow.exception;
 
 import com.wen.togethernow.common.BaseCode;
-import com.wen.togethernow.common.BaseResponse;
 
 /**
  * 业务异常类

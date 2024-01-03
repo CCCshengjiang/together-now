@@ -10,7 +10,7 @@ import lombok.Data;
 /**
  * 用户实体类
  * @ TableName user
- * @author Cwb
+ * @author wen
  */
 @TableName(value ="user")
 @Data
@@ -88,7 +88,7 @@ public class User implements Serializable {
     private String idCode;
 
     /**
-     * 用户标签
+     * 用户标签 JSON
      */
     private String tags;
 
