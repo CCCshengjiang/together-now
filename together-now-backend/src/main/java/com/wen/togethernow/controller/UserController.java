@@ -107,14 +107,16 @@ public class UserController {
      * @return 查询到的脱敏用户列表
      */
     @GetMapping("/search")
-    public BaseResponse<List<User>> userSearch(@RequestBody UserSearchRequest userSearchRequest, HttpServletRequest request) {
+    public BaseResponse<List<User>> userSearch(@ModelAttribute UserSearchRequest userSearchRequest, HttpServletRequest request) {
         // 鉴权
-        if (userService.isAdmin(request)) {
+        if (!userService.isAdmin(request)) {
             throw new BusinessException(ACCESS_DENIED);
         }
+        // 展示所有用户信息
         if (userSearchRequest == null) {
-            throw new BusinessException(PARAMS_NULL_ERROR);
+            return ReturnUtil.success(userService.list());
         }
+        // 根据字段查询
         List<User> users = userService.userSearch(userSearchRequest);
         return ReturnUtil.success(users);
     }
