@@ -1,13 +1,9 @@
-<script lang="ts">
-import {defineComponent} from 'vue'
+<script setup lang="ts">
 
-export default defineComponent({
-  name: "Home"
-})
 </script>
 
 <template>
-  这是主页
+这是主页
 </template>
 
 <style scoped>

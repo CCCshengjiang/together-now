@@ -1,13 +1,9 @@
-<script lang="ts">
-import {defineComponent} from 'vue'
+<script setup lang="ts">
 
-export default defineComponent({
-  name: "Team"
-})
 </script>
 
 <template>
-  这是组队页面
+这是队伍页面
 </template>
 
 <style scoped>
