@@ -2,6 +2,9 @@ package com.wen.togethernow.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wen.togethernow.common.BaseResponse;
+import com.wen.togethernow.common.utils.ReturnUtil;
+import com.wen.togethernow.exception.BusinessException;
 import com.wen.togethernow.model.domain.User;
 import com.wen.togethernow.model.request.UserSearchRequest;
 import com.wen.togethernow.service.UserService;
@@ -17,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static com.wen.togethernow.common.BaseCode.*;
 import static com.wen.togethernow.constant.UserConstant.*;
 
 /**
@@ -41,31 +45,31 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @return 返回用户id
      */
     @Override
-    public long userRegister(String userAccount, String userPassword, String checkPassword, String idCode) {
+    public Long userRegister(String userAccount, String userPassword, String checkPassword, String idCode) {
         // 1.校验是否为空
         if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword, idCode)) {
-            return -1;
+            throw new BusinessException(PARAMS_NULL_ERROR, "请求参数为空");
         }
         // 2.长度校验
         if (userAccount.length() < 4 || userPassword.length() < 8 || checkPassword.length() < 8) {
-            return -1;
+            throw new BusinessException(PARAMS_ERROR, "输入长度不符合要求");
         }
-        // 2.账户校验
+        // 2.账号校验
         // 不能重复
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_account", userAccount);
         long count = userMapper.selectCount(queryWrapper);
         if (count > 0) {
-            return -1;
+            throw new BusinessException(PARAMS_ERROR, "账号已经存在");
         }
         // 不包含特殊字符
         if (!userAccount.matches("^[0-9a-zA-Z]{4,}$")) {
-            return -1;
+            throw new BusinessException(PARAMS_ERROR);
         }
         // 3.密码
         // 两次密码相同
         if (!userPassword.equals(checkPassword)) {
-            return -1;
+            throw new BusinessException(PARAMS_ERROR, "两次密码不同");
         }
         // 3.用户编号
         //不能重复
@@ -73,7 +77,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         queryWrapper.eq("id_code", idCode);
         count = this.count(queryWrapper);
         if (count > 0) {
-            return -1;
+            throw new BusinessException(PARAMS_ERROR, "编号重复");
         }
         // 5.对密码进行加密
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
@@ -84,8 +88,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         user.setIdCode(idCode);
         boolean res = this.save(user);
         if (!res) {
-            return -1;
+            throw new BusinessException(PARAMS_ERROR, "注册失败");
         }
+
         return user.getId();
     }
 
@@ -102,23 +107,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 1.校验
         //校验是否为空
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
-            return null;
+            throw new BusinessException(PARAMS_NULL_ERROR, "请求参数为空");
         }
         //长度校验（账号不小于4位，密码不小于8位）
         if (userAccount.length() < 4 || userPassword.length() < 8) {
-            return null;
+            throw new BusinessException(PARAMS_ERROR, "输入长度不符合要求");
         }
         //数据库查询是否有账号
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_account", userAccount);
         User user = userMapper.selectOne(queryWrapper);
         if (user == null) {
-            return null;
+            throw new BusinessException(PARAMS_NULL_ERROR, "账号不存在");
         }
         //密码是否正确（密码加密之后相比）
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
         if (!user.getUserPassword().equals(encryptPassword)) {
-            return null;
+            throw new BusinessException(INVALID_PASSWORD_ERROR, "密码错误");
         }
         // 3.返回脱敏后的用户信息
         User safetyUser = getSafetyUser(user);
@@ -135,9 +140,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Override
     public User getCurrentUser(HttpServletRequest request) {
+        // 获取当前登录的用户信息
         User currentUser = (User) request.getSession().getAttribute(USER_LOGIN_STATUS);
         if (currentUser == null) {
-            return null;
+            throw new BusinessException(AUTH_FAILURE, "未登录或登录过期");
         }
         return getSafetyUser(currentUser);
     }
@@ -157,7 +163,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public boolean isAdmin(HttpServletRequest request) {
         User user = (User) request.getSession().getAttribute(USER_LOGIN_STATUS);
-        return user != null && user.getUserRole() == ADMIN_ROLE;
+        if (user == null) {
+            throw new BusinessException(AUTH_FAILURE, "未登录或登陆过期");
+        }
+        return user.getUserRole() == ADMIN_ROLE;
     }
 
     /**
@@ -170,7 +179,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public List<User> userSearch(UserSearchRequest userSearchRequest) {
         List<User> safetyUsers = new ArrayList<>();
         if (userSearchRequest == null) {
-            return safetyUsers;
+            throw new BusinessException(PARAMS_NULL_ERROR);
         }
         // 拿到前端传递的信息
         String userAccount = userSearchRequest.getUserAccount();

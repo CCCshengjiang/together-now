@@ -1,5 +1,6 @@
 package com.wen.togethernow.service;
 
+import com.wen.togethernow.common.BaseResponse;
 import com.wen.togethernow.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wen.togethernow.model.request.UserSearchRequest;
@@ -16,12 +17,12 @@ public interface UserService extends IService<User> {
     /**
      * 用户注册接口
      *
-     * @param userAccount 账号
-     * @param userPassword 密码
+     * @param userAccount   账号
+     * @param userPassword  密码
      * @param checkPassword 确认密码
      * @return 返回用户id
      */
-    long userRegister(String userAccount, String userPassword, String checkPassword, String idCode);
+    Long userRegister(String userAccount, String userPassword, String checkPassword, String idCode);
 
     /**
      * 用户登录接口

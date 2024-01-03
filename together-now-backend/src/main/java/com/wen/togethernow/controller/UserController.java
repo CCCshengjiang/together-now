@@ -1,5 +1,8 @@
 package com.wen.togethernow.controller;
 
+import com.wen.togethernow.common.BaseResponse;
+import com.wen.togethernow.common.utils.ReturnUtil;
+import com.wen.togethernow.exception.BusinessException;
 import com.wen.togethernow.model.domain.User;
 import com.wen.togethernow.model.request.UserLoginRequest;
 import com.wen.togethernow.model.request.UserRegisterRequest;
@@ -8,11 +11,12 @@ import com.wen.togethernow.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 
-import java.util.ArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static com.wen.togethernow.common.BaseCode.*;
 
 /**
  *用户接口类
@@ -33,7 +37,7 @@ public class UserController {
      * @return 注册后的用户id
      */
     @PostMapping("/register")
-    public Long userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
+    public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         if (userRegisterRequest == null) {
             return null;
         }
@@ -44,7 +48,8 @@ public class UserController {
         if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword, idCode)) {
             return null;
         }
-        return userService.userRegister(userAccount, userPassword, checkPassword, idCode);
+        Long id = userService.userRegister(userAccount, userPassword, checkPassword, idCode);
+        return ReturnUtil.success(id);
     }
 
     /**
@@ -55,7 +60,7 @@ public class UserController {
      * @return 返回脱敏用户信息
      */
     @PostMapping("/login")
-    public User userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+    public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         if (userLoginRequest == null) {
             return null;
         }
@@ -64,7 +69,8 @@ public class UserController {
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
             return null;
         }
-        return userService.userLogin(userAccount, userPassword, request);
+        User user = userService.userLogin(userAccount, userPassword, request);
+        return ReturnUtil.success(user);
     }
 
     /**
@@ -74,8 +80,9 @@ public class UserController {
      * @return 返回脱敏的用户信息
      */
     @GetMapping("/current")
-    public User getCurrentUser(HttpServletRequest request) {
-        return userService.getCurrentUser(request);
+    public BaseResponse<User> getCurrentUser(HttpServletRequest request) {
+        User currentUser = userService.getCurrentUser(request);
+        return ReturnUtil.success(currentUser);
     }
 
     /**
@@ -85,11 +92,12 @@ public class UserController {
      * @return 返回
      */
     @PostMapping("logout")
-    public Integer userLogout(HttpServletRequest request) {
+    public BaseResponse<Integer> userLogout(HttpServletRequest request) {
         if (request == null) {
-            return null;
+            throw new BusinessException(PARAMS_NULL_ERROR);
         }
-        return userService.userLogout(request);
+        Integer i = userService.userLogout(request);
+        return ReturnUtil.success(i);
     }
 
     /**
@@ -99,15 +107,16 @@ public class UserController {
      * @return 查询到的脱敏用户列表
      */
     @GetMapping("/search")
-    public List<User> userSearch(@RequestBody UserSearchRequest userSearchRequest, HttpServletRequest request) {
+    public BaseResponse<List<User>> userSearch(@RequestBody UserSearchRequest userSearchRequest, HttpServletRequest request) {
         // 鉴权
         if (userService.isAdmin(request)) {
-            return new ArrayList<>();
+            throw new BusinessException(ACCESS_DENIED);
         }
         if (userSearchRequest == null) {
-            return new ArrayList<>();
+            throw new BusinessException(PARAMS_NULL_ERROR);
         }
-        return userService.userSearch(userSearchRequest);
+        List<User> users = userService.userSearch(userSearchRequest);
+        return ReturnUtil.success(users);
     }
 
     /**
@@ -117,15 +126,16 @@ public class UserController {
      * @return 是否删除成功
      */
     @PostMapping("/delete")
-    public Boolean userDelete(@RequestBody long id, HttpServletRequest request) {
+    public BaseResponse<Boolean> userDelete(@RequestBody long id, HttpServletRequest request) {
         // 鉴权
         if (userService.isAdmin(request)) {
-            return false;
+            throw new BusinessException(ACCESS_DENIED);
         }
         if (id < 0) {
-            return false;
+            throw new BusinessException(RESOURCE_NOT_FOUND, "用户不存在");
         }
-        return userService.removeById(id);
+        boolean removedById = userService.removeById(id);
+        return ReturnUtil.success(removedById);
     }
 
 
