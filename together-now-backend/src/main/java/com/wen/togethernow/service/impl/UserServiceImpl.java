@@ -251,7 +251,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         List<User> safetyUsers = new ArrayList<>();
         Gson gson = new Gson();
         for (User user : users) {
-
             String tags = user.getTags();
             // tags从JSON转化为String格式
             Set<String> tagNameSet = gson.fromJson(tags, new TypeToken<Set<String>>(){}.getType());

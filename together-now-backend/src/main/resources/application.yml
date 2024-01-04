@@ -5,15 +5,35 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/together_now # 自己数据库地址
     username: root # 自己数据库用户名
-    password: 123456789c # 自己数据库密码
+    password: root # 自己数据库密码
   session:
     timeout: 86400
 
+# 配置端口号和全局访问路径
 server:
   port: 8080
   servlet:
     context-path: /api
   address: 0.0.0.0
+
+# springdoc-openapi项目配置
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.wen.togethernow.controller # 修改为自己的controller包路径
+# knife4j的增强配置，不需要增强可以不配
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+
 
 mybatis-plus:
   configuration:
