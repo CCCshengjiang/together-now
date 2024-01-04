@@ -1,10 +1,10 @@
 import { createApp } from 'vue'
 import './style.css'
 import App from './App.vue'
-import {Button, NavBar, Tabbar, TabbarItem} from 'vant';
-import 'vant/lib/index.css';
-import routes from "./config/route.ts";
 import * as VueRouter from  'vue-router';
+import routes from "./config/route.ts";
+import Vant from 'vant';
+import 'vant/lib/index.css';
 
 // 创建路由实例并传递 `routes` 配置
 const router = VueRouter.createRouter({
@@ -14,14 +14,7 @@ const router = VueRouter.createRouter({
 })
 
 const app = createApp(App);
-app.use(Button);
-app.use(NavBar);
-app.use(Tabbar);
-app.use(TabbarItem);
+app.use(Vant);
 app.use(router);
-
 app.mount('#app')
-
-
-
 
