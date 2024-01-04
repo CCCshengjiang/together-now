@@ -178,8 +178,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public List<User> userSearch(UserSearchRequest userSearchRequest) {
         List<User> safetyUsers = new ArrayList<>();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        // 1.如果前端没有传递，则返回所有列表信息
         if (userSearchRequest == null) {
-            throw new BusinessException(PARAMS_NULL_ERROR);
+            List<User> users = userMapper.selectList(queryWrapper);
+            for (User user : users) {
+                safetyUsers.add(getSafetyUser(user));
+            }
+            return safetyUsers;
         }
         // 拿到前端传递的信息
         String userAccount = userSearchRequest.getUserAccount();
@@ -191,8 +197,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         String idCode = userSearchRequest.getIdCode();
         String username = userSearchRequest.getUsername();
         Date createTime = userSearchRequest.getCreateTime();
-        // 根据信息查询
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        // 2.根据信息查询
         if (userAccount != null) {
             queryWrapper.eq("user_account", userAccount);
         }
@@ -290,7 +295,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @param originUser 原始的用户信息
      * @return 脱敏的用户
      */
-    private User getSafetyUser(User originUser) {
+    public User getSafetyUser(User originUser) {
         if (originUser == null) {
             return null;
         }

@@ -39,14 +39,14 @@ public class UserController {
     @PostMapping("/register")
     public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         if (userRegisterRequest == null) {
-            return null;
+            throw new BusinessException(PARAMS_NULL_ERROR, "输入为空");
         }
         String userAccount = userRegisterRequest.getUserAccount();
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
         String idCode = userRegisterRequest.getIdCode();
         if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword, idCode)) {
-            return null;
+            throw new BusinessException(PARAMS_NULL_ERROR, "输入为空");
         }
         Long id = userService.userRegister(userAccount, userPassword, checkPassword, idCode);
         return ReturnUtil.success(id);
@@ -62,12 +62,12 @@ public class UserController {
     @PostMapping("/login")
     public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         if (userLoginRequest == null) {
-            return null;
+            throw new BusinessException(PARAMS_NULL_ERROR, "输入为空");
         }
         String userAccount = userLoginRequest.getUserAccount();
         String userPassword = userLoginRequest.getUserPassword();
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
-            return null;
+            throw new BusinessException(PARAMS_NULL_ERROR, "输入为空");
         }
         User user = userService.userLogin(userAccount, userPassword, request);
         return ReturnUtil.success(user);
@@ -112,11 +112,7 @@ public class UserController {
         if (!userService.isAdmin(request)) {
             throw new BusinessException(ACCESS_DENIED);
         }
-        // 展示所有用户信息
-        if (userSearchRequest == null) {
-            return ReturnUtil.success(userService.list());
-        }
-        // 根据字段查询
+        // 查询用户
         List<User> users = userService.userSearch(userSearchRequest);
         return ReturnUtil.success(users);
     }
