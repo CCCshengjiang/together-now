@@ -177,7 +177,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     /**
-     * 判断是否是管理员
+     * 判断是否是管理员（前端请求）
      *
      * @param request Http请求
      * @return 是否是管理员
@@ -193,6 +193,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         return user.getUserRole() == ADMIN_ROLE;
     }
+
+    /**
+     * 判断用户是否为管理员（当前用户）
+     *
+     * @param currentUser 当前用户
+     * @return 是否是管理员
+     */
+    @Override
+    public boolean isAdmin(User currentUser) {
+        return currentUser != null && currentUser.getUserRole() == ADMIN_ROLE;
+    }
+
 
     /**
      * 查询用户实现类
@@ -286,6 +298,31 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             }
         }
         return safetyUsers;
+    }
+
+    /**
+     * 更新用户的实现
+     *
+     * @param updateUser 要修改的用户
+     * @param loginUser 当前登录用户
+     * @return 更新的用户数量
+     */
+    @Override
+    public int updateUser(User updateUser, User loginUser) {
+        // 判空
+        if (updateUser == null || loginUser == null) {
+            throw new BusinessException(PARAMS_ERROR);
+        }
+        // 判断是否为管理员 或者 要修改的用户就是当前登录用户
+        if (!isAdmin(loginUser) && loginUser.getId().equals(updateUser.getId())) {
+            throw new BusinessException(ACCESS_DENIED, "非管理员用户或要修改的不是当前登录用户");
+        }
+        // 查询要修改的用户在数据库中是否存在
+        User oldUser = userMapper.selectById(updateUser.getId());
+        if (oldUser == null || oldUser.getIsDelete() == USER_DELETED) {
+            throw new BusinessException(RESOURCE_NOT_FOUND, "要修改的用户不存在");
+        }
+        return userMapper.updateById(updateUser);
     }
 
     /**

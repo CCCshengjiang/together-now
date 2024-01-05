@@ -27,4 +27,9 @@ public class UserConstant {
      * 普通用户角色
      */
     public static final int DEFAULT_ROLE = 0;
+
+    /**
+     * 用户已经被删除
+     */
+    public static final int USER_DELETED = 1;
 }

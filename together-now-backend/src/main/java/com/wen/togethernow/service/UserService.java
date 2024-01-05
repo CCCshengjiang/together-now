@@ -1,6 +1,5 @@
 package com.wen.togethernow.service;
 
-import com.wen.togethernow.common.BaseResponse;
 import com.wen.togethernow.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wen.togethernow.model.request.UserLoginRequest;
@@ -51,12 +50,20 @@ public interface UserService extends IService<User> {
     Integer userLogout(HttpServletRequest request);
 
     /**
-     * 判断是否为管理员
+     * 判断是否为管理员（前端）
      *
      * @param request Http请求
      * @return 是否是管理员
      */
     boolean isAdmin(HttpServletRequest request);
+
+    /**
+     * 判断用户是否为管理员（当前用户）
+     *
+     * @param currentUser 当前用户
+     * @return 是否为管理员
+     */
+    boolean isAdmin(User currentUser);
 
     /**
      * 查询用户接口
@@ -74,4 +81,12 @@ public interface UserService extends IService<User> {
      */
     List<User> userSearchByTags(List<String> tagNameList);
 
+    /**
+     * 修改用户信息的业务接口
+     *
+     * @param updateUser 要修改的用户
+     * @param loginUser 当前登录用户
+     * @return 返回更新的用户数量
+     */
+    int updateUser(User updateUser, User loginUser);
 }

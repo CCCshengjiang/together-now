@@ -144,5 +144,25 @@ public class UserController {
         return ReturnUtil.success(removedById);
     }
 
+    /**
+     * 更新用户信息
+     *
+     * @param updateUser 要更新的用户
+     * @param request http请求
+     * @return 返回更新的用户数量
+     */
+    @PostMapping("/update")
+    public BaseResponse<Integer> updateUser(@RequestBody User updateUser, HttpServletRequest request) {
+        // 判断参数是否为空
+        if (updateUser == null || request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
+        // 得到当前登录的用户
+        User loginUser = userService.getCurrentUser(request);
+        // 修改用户
+        int result = userService.updateUser(updateUser, loginUser);
+        return ReturnUtil.success(result);
+    }
+
 
 }
