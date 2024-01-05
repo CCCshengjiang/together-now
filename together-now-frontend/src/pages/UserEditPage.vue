@@ -19,8 +19,8 @@ const onSubmit = (values) => {
 <template>
   <van-form @submit="onSubmit">
       <van-field
-          v-model="editUser.currentValue"
-          :name="editUser.editKey"
+          :v-model="editUser.currentValue"
+          :name="`${editUser.editKey}`"
           :label="`${editUser.editName}`"
           :placeholder="`请输入${editUser.editName}`"
           :rules="[{ required: true, message: `请输入${editUser.editName}` }]"

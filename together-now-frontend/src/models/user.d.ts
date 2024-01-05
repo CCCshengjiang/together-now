@@ -3,6 +3,7 @@ export type userType = {
     username: string,
     avatarUrl?: string,
     gender: number,
+    userProfile: string,
     userAccount: string,
     phone: string,
     email: string,

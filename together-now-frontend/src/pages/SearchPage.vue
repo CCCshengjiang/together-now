@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {ref} from "vue";
+import {useRouter} from "vue-router";
 
 const searchText = ref('');
 const originTagList = [
@@ -53,6 +54,16 @@ const close = (tag) => {
   })
 };
 
+const router = useRouter();
+const doSearchUsers = () => {
+  router.push({
+    path: '/user/list',
+    query: {
+      tags: activeIds.value,
+    },
+  })
+}
+
 </script>
 
 <template>
@@ -82,7 +93,7 @@ const close = (tag) => {
       :items="tagList"
   />
 
-
+  <van-button block type="primary" @click="doSearchUsers" style="margin-bottom: auto" >搜索用户</van-button>
 </template>
 
 <style scoped>
