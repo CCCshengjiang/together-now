@@ -13,7 +13,6 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.annotations.Options;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
@@ -260,6 +259,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             for (String tagStr : tagNameList) {
                 if (tagNameSet.contains(tagStr)) {
                     safetyUsers.add(getSafetyUser(user));
+                    break;
                 }
             }
         }
@@ -267,13 +267,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     /**
-     * 使用SQL根据标签查询用户
+     * 使用SQL根据标签查询用户（暂时弃用）
      *
      * @param tagNameList 标签
      * @return 脱敏的用户信息
      */
     @Deprecated(since="2.0", forRemoval=true)
-    private List<User> userSearchByTagsBySql(List<String> tagNameList) {
+    private List<User> userSearchByTagsUseSql(List<String> tagNameList) {
         if (tagNameList.isEmpty()) {
             throw new BusinessException(PARAMS_NULL_ERROR, "标签为空");
         }
@@ -312,6 +312,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safetyUser.setUserRole(originUser.getUserRole());
         safetyUser.setIdCode(originUser.getIdCode());
         safetyUser.setTags(originUser.getTags());
+        safetyUser.setUserProfile(originUser.getUserProfile());
         return safetyUser;
     }
 }

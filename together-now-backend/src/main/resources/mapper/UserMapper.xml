@@ -20,6 +20,7 @@
             <result property="userRole" column="user_role" jdbcType="INTEGER"/>
             <result property="idCode" column="id_code" jdbcType="VARCHAR"/>
             <result property="tags" column="tags" jdbcType="VARCHAR"/>
+            <result property="userProfile" column="user_profile" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -27,6 +28,6 @@
         gender,user_account,user_password,
         phone,email,user_status,
         create_time,update_time,is_delete,
-        user_role,id_code,tags
+        user_role,id_code,tags，user_profile
     </sql>
 </mapper>

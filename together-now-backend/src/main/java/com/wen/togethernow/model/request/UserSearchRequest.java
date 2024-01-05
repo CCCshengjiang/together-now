@@ -57,6 +57,11 @@ public class UserSearchRequest implements Serializable {
      */
     private String idCode;
 
+    /**
+     * 用户自我介绍
+     */
+    private String userProfile;
+
     @Serial
     private static final long serialVersionUID = 7595114131736591728L;
 }

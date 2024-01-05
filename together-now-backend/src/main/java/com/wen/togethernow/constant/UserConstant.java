@@ -3,7 +3,7 @@ package com.wen.togethernow.constant;
 /**
  * 用户常量
  *
- * @author Cwb
+ * @author wen
  */
 public class UserConstant {
     // 不允许类被实例化

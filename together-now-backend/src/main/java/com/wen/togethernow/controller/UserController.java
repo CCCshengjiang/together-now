@@ -19,9 +19,9 @@ import java.util.List;
 import static com.wen.togethernow.common.BaseCode.*;
 
 /**
- *用户接口类
+ * 用户接口类
  *
- * @author Cwb
+ * @author wen
  */
 @RestController
 @RequestMapping("/user")
@@ -56,7 +56,7 @@ public class UserController {
      * 用户登录
      *
      * @param userLoginRequest 用户登录请求体
-     * @param request HTTP请求
+     * @param request          HTTP请求
      * @return 返回脱敏用户信息
      */
     @PostMapping("/login")
@@ -118,6 +118,24 @@ public class UserController {
     }
 
     /**
+     * 根据标签查询用户
+     *
+     * @param tagNameList 标签列表
+     * @return 脱敏的用户列表
+     */
+    @GetMapping("/search/tags")
+    public BaseResponse<List<User>> userSearchByTags(@RequestParam(required = false) List<String> tagNameList) {
+        // 判空
+        if (tagNameList.isEmpty()) {
+            throw new BusinessException(PARAMS_NULL_ERROR, "标签为空");
+        }
+        // 根据标签查询用户
+        List<User> safetyUsers = userService.userSearchByTags(tagNameList);
+        return ReturnUtil.success(safetyUsers);
+    }
+
+
+    /**
      * 删除用户
      *
      * @param id 用户id
@@ -135,9 +153,6 @@ public class UserController {
         boolean removedById = userService.removeById(id);
         return ReturnUtil.success(removedById);
     }
-
-
-
 
 
 }
