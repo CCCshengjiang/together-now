@@ -10,12 +10,8 @@ import com.wen.togethernow.model.request.UserSearchRequest;
 import com.wen.togethernow.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
-
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-
 import static com.wen.togethernow.common.BaseCode.*;
 
 /**
@@ -25,6 +21,7 @@ import static com.wen.togethernow.common.BaseCode.*;
  */
 @RestController
 @RequestMapping("/user")
+@CrossOrigin(origins = { "http://localhost:5173/" })
 public class UserController {
 
     @Resource
@@ -41,14 +38,7 @@ public class UserController {
         if (userRegisterRequest == null) {
             throw new BusinessException(PARAMS_NULL_ERROR, "输入为空");
         }
-        String userAccount = userRegisterRequest.getUserAccount();
-        String userPassword = userRegisterRequest.getUserPassword();
-        String checkPassword = userRegisterRequest.getCheckPassword();
-        String idCode = userRegisterRequest.getIdCode();
-        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword, idCode)) {
-            throw new BusinessException(PARAMS_NULL_ERROR, "输入为空");
-        }
-        Long id = userService.userRegister(userAccount, userPassword, checkPassword, idCode);
+        Long id = userService.userRegister(userRegisterRequest);
         return ReturnUtil.success(id);
     }
 
@@ -64,12 +54,7 @@ public class UserController {
         if (userLoginRequest == null) {
             throw new BusinessException(PARAMS_NULL_ERROR, "输入为空");
         }
-        String userAccount = userLoginRequest.getUserAccount();
-        String userPassword = userLoginRequest.getUserPassword();
-        if (StringUtils.isAnyBlank(userAccount, userPassword)) {
-            throw new BusinessException(PARAMS_NULL_ERROR, "输入为空");
-        }
-        User user = userService.userLogin(userAccount, userPassword, request);
+        User user = userService.userLogin(userLoginRequest, request);
         return ReturnUtil.success(user);
     }
 
@@ -108,6 +93,9 @@ public class UserController {
      */
     @GetMapping("/search")
     public BaseResponse<List<User>> userSearch(@ModelAttribute UserSearchRequest userSearchRequest, HttpServletRequest request) {
+        if (userSearchRequest == null || request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
         // 鉴权
         if (!userService.isAdmin(request)) {
             throw new BusinessException(ACCESS_DENIED);
@@ -134,7 +122,6 @@ public class UserController {
         return ReturnUtil.success(safetyUsers);
     }
 
-
     /**
      * 删除用户
      *
@@ -143,6 +130,9 @@ public class UserController {
      */
     @PostMapping("/delete")
     public BaseResponse<Boolean> userDelete(@RequestBody long id, HttpServletRequest request) {
+        if (request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
         // 鉴权
         if (userService.isAdmin(request)) {
             throw new BusinessException(ACCESS_DENIED);

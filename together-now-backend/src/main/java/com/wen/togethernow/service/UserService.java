@@ -3,6 +3,8 @@ package com.wen.togethernow.service;
 import com.wen.togethernow.common.BaseResponse;
 import com.wen.togethernow.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.wen.togethernow.model.request.UserLoginRequest;
+import com.wen.togethernow.model.request.UserRegisterRequest;
 import com.wen.togethernow.model.request.UserSearchRequest;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -14,25 +16,23 @@ import java.util.List;
  * @author wen
 */
 public interface UserService extends IService<User> {
-    /**
-     * 用户注册接口
-     *
-     * @param userAccount   账号
-     * @param userPassword  密码
-     * @param checkPassword 确认密码
-     * @return 返回用户id
-     */
-    Long userRegister(String userAccount, String userPassword, String checkPassword, String idCode);
 
     /**
-     * 用户登录接口
+     * 用户注册业务层接口
      *
-     * @param userAccount  账号
-     * @param userPassword 密码
-     * @param request 请求
-     * @return 返回用户信息
+     * @param userRegisterRequest 前端输入的注册信息
+     * @return 返回注册的用户id
      */
-    User userLogin(String userAccount, String userPassword, HttpServletRequest request);
+    Long userRegister(UserRegisterRequest userRegisterRequest);
+
+    /**
+     * 用户登陆的业务层接口
+     *
+     * @param userLoginRequest 前端输入的用户登录信息
+     * @param request 请求
+     * @return 返回脱敏的用户信息
+     */
+    User userLogin(UserLoginRequest userLoginRequest, HttpServletRequest request);
 
     /**
      * 获取当前登陆的用户信息

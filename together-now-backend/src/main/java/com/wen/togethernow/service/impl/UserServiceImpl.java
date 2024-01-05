@@ -6,6 +6,8 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.wen.togethernow.exception.BusinessException;
 import com.wen.togethernow.model.domain.User;
+import com.wen.togethernow.model.request.UserLoginRequest;
+import com.wen.togethernow.model.request.UserRegisterRequest;
 import com.wen.togethernow.model.request.UserSearchRequest;
 import com.wen.togethernow.service.UserService;
 import com.wen.togethernow.mapper.UserMapper;
@@ -38,14 +40,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     /**
      * 用户注册实现类
      *
-     * @param userAccount   账号
-     * @param userPassword  密码
-     * @param checkPassword 确认密码
-     * @return 返回用户id
+     * @param userRegisterRequest 前端输入的注册信息
+     * @return 返回注册的用户id
      */
     @Override
-    public Long userRegister(String userAccount, String userPassword, String checkPassword, String idCode) {
-        // 1.校验是否为空
+    public Long userRegister(UserRegisterRequest userRegisterRequest) {
+        // 校验输入是否为空
+        if (userRegisterRequest == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR, "注册输入参数为空");
+        }
+        // 拿到信息
+        String userAccount = userRegisterRequest.getUserAccount();
+        String userPassword = userRegisterRequest.getUserPassword();
+        String checkPassword = userRegisterRequest.getCheckPassword();
+        String idCode = userRegisterRequest.getIdCode();
+        // 1.校验输入信息是否完整
         if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword, idCode)) {
             throw new BusinessException(PARAMS_NULL_ERROR, "请求参数为空");
         }
@@ -96,15 +105,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     /**
      * 用户登陆的实现类
      *
-     * @param userAccount  账号
-     * @param userPassword 密码
-     * @param request 请求
+     * @param userLoginRequest 前端输入的用户登录信息
+     * @param request          请求
      * @return 返回脱敏的用户信息
      */
     @Override
-    public User userLogin(String userAccount, String userPassword, HttpServletRequest request) {
+    public User userLogin(UserLoginRequest userLoginRequest, HttpServletRequest request) {
+        // 校验登陆参数是否为空
+        if (userLoginRequest == null || request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
+        String userAccount = userLoginRequest.getUserAccount();
+        String userPassword = userLoginRequest.getUserPassword();
+        if (StringUtils.isAnyBlank(userAccount, userPassword)) {
+            throw new BusinessException(PARAMS_NULL_ERROR, "输入为空");
+        }
         // 1.校验
-        //校验是否为空
+        //校验参数是否完整
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
             throw new BusinessException(PARAMS_NULL_ERROR, "请求参数为空");
         }
@@ -139,6 +156,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Override
     public User getCurrentUser(HttpServletRequest request) {
+        if (request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
         // 获取当前登录的用户信息
         User currentUser = (User) request.getSession().getAttribute(USER_LOGIN_STATUS);
         if (currentUser == null) {
@@ -149,6 +169,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public Integer userLogout(HttpServletRequest request) {
+        if (request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
         request.getSession().removeAttribute(USER_LOGIN_STATUS);
         return 1;
     }
@@ -161,6 +184,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Override
     public boolean isAdmin(HttpServletRequest request) {
+        if (request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
         User user = (User) request.getSession().getAttribute(USER_LOGIN_STATUS);
         if (user == null) {
             throw new BusinessException(AUTH_FAILURE, "未登录或登陆过期");
@@ -176,16 +202,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Override
     public List<User> userSearch(UserSearchRequest userSearchRequest) {
+        if (userSearchRequest == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
         List<User> safetyUsers = new ArrayList<>();
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        // 1.如果前端没有传递，则返回所有列表信息
-        if (userSearchRequest == null) {
-            List<User> users = userMapper.selectList(queryWrapper);
-            for (User user : users) {
-                safetyUsers.add(getSafetyUser(user));
-            }
-            return safetyUsers;
-        }
         // 拿到前端传递的信息
         String userAccount = userSearchRequest.getUserAccount();
         Integer userRole = userSearchRequest.getUserRole();
@@ -196,7 +217,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         String idCode = userSearchRequest.getIdCode();
         String username = userSearchRequest.getUsername();
         Date createTime = userSearchRequest.getCreateTime();
-        // 2.根据信息查询
+        // 根据信息查询,如果信息全部为空，返回所有用户列表
         if (userAccount != null) {
             queryWrapper.eq("user_account", userAccount);
         }
@@ -252,7 +273,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         for (User user : users) {
             String tags = user.getTags();
             // tags从JSON转化为String格式
-            Set<String> tagNameSet = gson.fromJson(tags, new TypeToken<Set<String>>(){}.getType());
+            Set<String> tagNameSet = gson.fromJson(tags, new TypeToken<Set<String>>() {
+            }.getType());
             // 判断是否为空
             tagNameSet = Optional.ofNullable(tagNameSet).orElse(new HashSet<>());
             // 用户信息脱敏
@@ -272,7 +294,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @param tagNameList 标签
      * @return 脱敏的用户信息
      */
-    @Deprecated(since="2.0", forRemoval=true)
+    @Deprecated(since = "2.0", forRemoval = true)
     private List<User> userSearchByTagsUseSql(List<String> tagNameList) {
         if (tagNameList.isEmpty()) {
             throw new BusinessException(PARAMS_NULL_ERROR, "标签为空");
