@@ -8,6 +8,12 @@ spring:
     password: root # 自己数据库密码
   session:
     timeout: 86400
+  # 配置Redis
+  data:
+    redis:
+      port: 6379
+      host: localhost
+      database: 0
 
 # 配置端口号和全局访问路径
 server:
@@ -36,8 +42,6 @@ knife4j:
   enable: true
   setting:
     language: zh_cn
-
-
 
 mybatis-plus:
   configuration:
