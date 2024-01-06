@@ -161,6 +161,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         // 获取当前登录的用户信息
         User currentUser = (User) request.getSession().getAttribute(USER_LOGIN_STATUS);
+        // 防止更新用户之后，返回的还是缓存中的用户信息
+        currentUser = userMapper.selectById(currentUser.getId());
         if (currentUser == null) {
             throw new BusinessException(AUTH_FAILURE, "未登录或登录过期");
         }

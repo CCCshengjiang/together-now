@@ -21,7 +21,7 @@ import static com.wen.togethernow.common.BaseCode.*;
  */
 @RestController
 @RequestMapping("/user")
-@CrossOrigin(origins = { "http://localhost:5173/" })
+@CrossOrigin(origins = { "http://localhost:5173/" }, allowCredentials = "true")
 public class UserController {
 
     @Resource
@@ -51,7 +51,7 @@ public class UserController {
      */
     @PostMapping("/login")
     public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
-        if (userLoginRequest == null) {
+        if (userLoginRequest == null || request == null) {
             throw new BusinessException(PARAMS_NULL_ERROR, "输入为空");
         }
         User user = userService.userLogin(userLoginRequest, request);
