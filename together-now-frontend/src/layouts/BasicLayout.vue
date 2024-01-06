@@ -24,8 +24,9 @@ const onChange = (index) => showToast(`标签 ${index}`);
     </template>
   </van-nav-bar>
 
-
-  <router-view/>
+  <div id="content">
+    <router-view/>
+  </div>
   <van-tabbar route @change="onChange">
     <van-tabbar-item to="/" icon="home-o" name="home">主页</van-tabbar-item>
     <van-tabbar-item to="/team" icon="friends-o" name="team">队伍</van-tabbar-item>
@@ -36,5 +37,7 @@ const onChange = (index) => showToast(`标签 ${index}`);
 </template>
 
 <style scoped>
-
+#content {
+  padding-bottom: 50px;
+}
 </style>

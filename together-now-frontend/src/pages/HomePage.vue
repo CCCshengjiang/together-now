@@ -1,9 +1,42 @@
 <script setup lang="ts">
+import {useRoute} from "vue-router";
+import {onMounted, ref} from "vue";
+import myAxios from "../plugs/myAxios.ts"
+import UserCardList from "../components/UserCardList.vue";
+
+const route = useRoute();
+const {tags} = route.query;
+const userList = ref([])
+
+onMounted(async () => {
+// Optionally the request above could also be done as
+  const searchUserList = await myAxios.get('/user/recommend', {
+    params: {
+      tagNameList: tags,
+    }
+  })
+      .then(function (response) {
+        console.log('/user/recommend succeed', response);
+        return response?.data;
+      })
+      .catch(function (error) {
+        console.log('/user/recommend error', error);
+      })
+  if (searchUserList) {
+    searchUserList.forEach(user => {
+      if (user.tags) {
+        user.tags = JSON.parse(user.tags);
+      }
+    })
+    userList.value = searchUserList;
+  }
+})
 
 </script>
 
 <template>
-这是主页
+  <user-card-list :user-list="userList"/>
+  <van-empty image="search" v-if="!userList || userList.length === 0" description="数据为空"/>
 </template>
 
 <style scoped>
