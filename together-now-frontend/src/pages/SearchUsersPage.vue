@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {useRoute} from "vue-router";
 import {onMounted, ref} from "vue";
-import myAxios from "../plugs/MyAxios.js"
+import myAxios from "../plugs/myAxios.ts"
 import qs from 'qs';
 
 const route = useRoute();
