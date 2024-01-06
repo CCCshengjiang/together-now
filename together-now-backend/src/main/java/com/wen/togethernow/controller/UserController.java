@@ -123,6 +123,22 @@ public class UserController {
     }
 
     /**
+     * 用户推荐
+     *
+     * @param request 前端请求
+     * @return 返回脱敏的用户列表
+     */
+    @GetMapping("/recommend")
+    public BaseResponse<List<User>> recommendUsers(HttpServletRequest request) {
+        if (request == null) {
+            throw new BusinessException(PARAMS_ERROR);
+        }
+        // 用户推荐
+        List<User> safetyUsers = userService.recommendUsers(request);
+        return ReturnUtil.success(safetyUsers);
+    }
+
+    /**
      * 删除用户
      *
      * @param id 用户id

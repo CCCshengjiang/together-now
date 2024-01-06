@@ -89,4 +89,12 @@ public interface UserService extends IService<User> {
      * @return 返回更新的用户数量
      */
     int updateUser(User updateUser, User loginUser);
+
+    /**
+     * 用户推荐的业务层接口
+     *
+     * @param request 前端请求
+     * @return 返回脱敏的用户列表
+     */
+    List<User> recommendUsers(HttpServletRequest request);
 }

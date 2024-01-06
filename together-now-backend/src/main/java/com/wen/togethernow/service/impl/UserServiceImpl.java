@@ -328,6 +328,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     /**
+     * 用户推荐的业务实现
+     *
+     * @param request 前端请求
+     * @return 脱敏的用户列表
+     */
+    @Override
+    public List<User> recommendUsers(HttpServletRequest request) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        userMapper.selectList(queryWrapper);
+        return userMapper.selectList(queryWrapper);
+    }
+
+    /**
      * 使用SQL根据标签查询用户（暂时弃用）
      *
      * @param tagNameList 标签
