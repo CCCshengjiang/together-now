@@ -178,11 +178,8 @@ public class UserController {
         if (request == null) {
             throw new BusinessException(PARAMS_ERROR);
         }
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        // 分页查询
-        Page<User> userPageList = userService.page(new Page<>(userPageRequest.getPageNum(), userPageRequest.getPageSize()), queryWrapper);
-        // 用户信息脱敏
-        List<User> safetyUsers = userService.getSafetyUser(userPageList);
+        List<User> safetyUsers = userService.recommendUsers(userPageRequest, request);
+
         return ReturnUtil.success(safetyUsers);
     }
 }
