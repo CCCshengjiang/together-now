@@ -13,7 +13,7 @@ spring:
     redis:
       port: 6379
       host: localhost
-      database: 0
+      database: 1
 
 # 配置端口号和全局访问路径
 server:
