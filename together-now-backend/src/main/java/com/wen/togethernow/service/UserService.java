@@ -1,5 +1,6 @@
 package com.wen.togethernow.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wen.togethernow.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wen.togethernow.model.request.UserLoginRequest;
@@ -91,10 +92,10 @@ public interface UserService extends IService<User> {
     int updateUser(User updateUser, User loginUser);
 
     /**
-     * 用户推荐的业务层接口
+     * 用户脱敏的业务层接口
      *
-     * @param request 前端请求
-     * @return 返回脱敏的用户列表
+     * @param userPageList 分页的用户列表
+     * @return 脱敏的用户分页列表
      */
-    List<User> recommendUsers(HttpServletRequest request);
+    List<User> getSafetyUser(Page<User> userPageList);
 }

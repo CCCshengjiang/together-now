@@ -1,6 +1,7 @@
 package com.wen.togethernow.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -328,16 +329,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     /**
-     * 用户推荐的业务实现
+     * 用户脱敏的实现
      *
-     * @param request 前端请求
-     * @return 脱敏的用户列表
+     * @param userPageList 分页的用户列表
+     * @return 脱敏的用户分页列表
      */
     @Override
-    public List<User> recommendUsers(HttpServletRequest request) {
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        userMapper.selectList(queryWrapper);
-        return userMapper.selectList(queryWrapper);
+    public List<User> getSafetyUser(Page<User> userPageList) {
+        List<User> userListRecords = userPageList.getRecords();
+        List<User> safetyUserList = new ArrayList<>();
+        for (int i = 0; i < userListRecords.size(); i++) {
+            safetyUserList.add(getSafetyUser(userListRecords.get(i)));
+        }
+        return safetyUserList;
     }
 
     /**

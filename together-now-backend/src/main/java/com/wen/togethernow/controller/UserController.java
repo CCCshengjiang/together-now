@@ -1,10 +1,13 @@
 package com.wen.togethernow.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wen.togethernow.common.BaseResponse;
 import com.wen.togethernow.common.utils.ReturnUtil;
 import com.wen.togethernow.exception.BusinessException;
 import com.wen.togethernow.model.domain.User;
 import com.wen.togethernow.model.request.UserLoginRequest;
+import com.wen.togethernow.model.request.UserPageRequest;
 import com.wen.togethernow.model.request.UserRegisterRequest;
 import com.wen.togethernow.model.request.UserSearchRequest;
 import com.wen.togethernow.service.UserService;
@@ -123,22 +126,6 @@ public class UserController {
     }
 
     /**
-     * 用户推荐
-     *
-     * @param request 前端请求
-     * @return 返回脱敏的用户列表
-     */
-    @GetMapping("/recommend")
-    public BaseResponse<List<User>> recommendUsers(HttpServletRequest request) {
-        if (request == null) {
-            throw new BusinessException(PARAMS_ERROR);
-        }
-        // 用户推荐
-        List<User> safetyUsers = userService.recommendUsers(request);
-        return ReturnUtil.success(safetyUsers);
-    }
-
-    /**
      * 删除用户
      *
      * @param id 用户id
@@ -180,5 +167,22 @@ public class UserController {
         return ReturnUtil.success(result);
     }
 
-
+    /**
+     * 用户推荐
+     *
+     * @param request 前端请求
+     * @return 返回分页用户列表
+     */
+    @GetMapping("/recommend")
+    public BaseResponse<List<User>> recommendUsers(@ModelAttribute UserPageRequest userPageRequest, HttpServletRequest request) {
+        if (request == null) {
+            throw new BusinessException(PARAMS_ERROR);
+        }
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        // 分页查询
+        Page<User> userPageList = userService.page(new Page<>(userPageRequest.getPageNum(), userPageRequest.getPageSize()), queryWrapper);
+        // 用户信息脱敏
+        List<User> safetyUsers = userService.getSafetyUser(userPageList);
+        return ReturnUtil.success(safetyUsers);
+    }
 }
