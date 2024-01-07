@@ -1,18 +1,15 @@
 <script setup lang="ts">
-import {useRoute} from "vue-router";
 import {onMounted, ref} from "vue";
 import myAxios from "../plugs/myAxios.ts"
 import UserCardList from "../components/UserCardList.vue";
-
-const route = useRoute();
-const {tags} = route.query;
 const userList = ref([])
 
 onMounted(async () => {
 // Optionally the request above could also be done as
   const searchUserList = await myAxios.get('/user/recommend', {
     params: {
-      tagNameList: tags,
+      pageSize: 10,
+      pageNum: 1,
     }
   })
       .then(function (response) {
