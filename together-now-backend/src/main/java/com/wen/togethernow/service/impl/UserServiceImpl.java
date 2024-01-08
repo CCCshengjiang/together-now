@@ -12,6 +12,7 @@ import com.wen.togethernow.model.request.UserLoginRequest;
 import com.wen.togethernow.model.request.UserRegisterRequest;
 import com.wen.togethernow.model.request.UserSearchRequest;
 import com.wen.togethernow.model.request.UserUpdateRequest;
+import com.wen.togethernow.model.vo.SafetyUserVO;
 import com.wen.togethernow.service.UserService;
 import com.wen.togethernow.mapper.UserMapper;
 import jakarta.annotation.Resource;
@@ -415,21 +416,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (originUser == null) {
             return null;
         }
+        SafetyUserVO safetyUserVO = new SafetyUserVO();
+        BeanUtils.copyProperties(originUser, safetyUserVO);
         User safetyUser = new User();
-        safetyUser.setId(originUser.getId());
-        safetyUser.setUsername(originUser.getUsername());
-        safetyUser.setAvatarUrl(originUser.getAvatarUrl());
-        safetyUser.setGender(originUser.getGender());
-        safetyUser.setUserAccount(originUser.getUserAccount());
-        safetyUser.setPhone(originUser.getPhone());
-        safetyUser.setEmail(originUser.getEmail());
-        safetyUser.setUserStatus(originUser.getUserStatus());
-        safetyUser.setCreateTime(originUser.getCreateTime());
-        safetyUser.setUpdateTime(originUser.getUpdateTime());
-        safetyUser.setUserRole(originUser.getUserRole());
-        safetyUser.setIdCode(originUser.getIdCode());
-        safetyUser.setTags(originUser.getTags());
-        safetyUser.setUserProfile(originUser.getUserProfile());
+        BeanUtils.copyProperties(safetyUserVO, safetyUser);
         return safetyUser;
     }
 }
