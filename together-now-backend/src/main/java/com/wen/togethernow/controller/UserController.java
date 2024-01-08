@@ -8,6 +8,7 @@ import com.wen.togethernow.model.domain.User;
 import com.wen.togethernow.model.request.UserLoginRequest;
 import com.wen.togethernow.model.request.UserRegisterRequest;
 import com.wen.togethernow.model.request.UserSearchRequest;
+import com.wen.togethernow.model.request.UserUpdateRequest;
 import com.wen.togethernow.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -138,7 +139,7 @@ public class UserController {
         if (userService.isAdmin(request)) {
             throw new BusinessException(ACCESS_DENIED);
         }
-        if (id < 0) {
+        if (id <= 0) {
             throw new BusinessException(RESOURCE_NOT_FOUND, "用户不存在");
         }
         boolean removedById = userService.removeById(id);
@@ -148,20 +149,20 @@ public class UserController {
     /**
      * 更新用户信息
      *
-     * @param updateUser 要更新的用户
+     * @param userUpdateRequest 要更新的用户
      * @param request http请求
      * @return 返回更新的用户数量
      */
     @PostMapping("/update")
-    public BaseResponse<Integer> updateUser(@RequestBody User updateUser, HttpServletRequest request) {
+    public BaseResponse<Integer> updateUser(@RequestBody UserUpdateRequest userUpdateRequest, HttpServletRequest request) {
         // 判断参数是否为空
-        if (updateUser == null || request == null) {
+        if (userUpdateRequest == null || request == null) {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
         // 得到当前登录的用户
         User loginUser = userService.getCurrentUser(request);
         // 修改用户
-        int result = userService.updateUser(updateUser, loginUser);
+        int result = userService.updateUser(userUpdateRequest, loginUser);
         return ReturnUtil.success(result);
     }
 
@@ -174,7 +175,7 @@ public class UserController {
     @GetMapping("/recommend")
     public BaseResponse<List<User>> recommendUsers(PageRequest pageRequest, HttpServletRequest request) {
         if (request == null) {
-            throw new BusinessException(PARAMS_ERROR);
+            throw new BusinessException(PARAMS_NULL_ERROR);
         }
         List<User> safetyUsers = userService.recommendUsers(pageRequest, request);
 

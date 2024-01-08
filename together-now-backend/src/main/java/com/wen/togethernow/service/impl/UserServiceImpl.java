@@ -11,12 +11,14 @@ import com.wen.togethernow.model.domain.User;
 import com.wen.togethernow.model.request.UserLoginRequest;
 import com.wen.togethernow.model.request.UserRegisterRequest;
 import com.wen.togethernow.model.request.UserSearchRequest;
+import com.wen.togethernow.model.request.UserUpdateRequest;
 import com.wen.togethernow.service.UserService;
 import com.wen.togethernow.mapper.UserMapper;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -169,10 +171,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 获取当前登录的用户信息
         User currentUser = (User) request.getSession().getAttribute(USER_LOGIN_STATUS);
         // 防止更新用户之后，返回的还是缓存中的用户信息
-        currentUser = userMapper.selectById(currentUser.getId());
         if (currentUser == null) {
             throw new BusinessException(AUTH_FAILURE, "未登录或登录过期");
         }
+        currentUser = userMapper.selectById(currentUser.getId());
         return getSafetyUser(currentUser);
     }
 
@@ -312,25 +314,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     /**
      * 更新用户的实现
      *
-     * @param updateUser 要修改的用户
+     * @param userUpdateRequest 要修改的用户
      * @param loginUser 当前登录用户
      * @return 更新的用户数量
      */
     @Override
-    public int updateUser(User updateUser, User loginUser) {
+    public int updateUser(UserUpdateRequest userUpdateRequest, User loginUser) {
         // 判空
-        if (updateUser == null || loginUser == null) {
+        if (userUpdateRequest == null || loginUser == null) {
             throw new BusinessException(PARAMS_ERROR);
         }
         // 判断是否为管理员 或者 要修改的用户就是当前登录用户
-        if (!isAdmin(loginUser) && loginUser.getId().equals(updateUser.getId())) {
+        if (!isAdmin(loginUser) && loginUser.getId().equals(userUpdateRequest.getId())) {
             throw new BusinessException(ACCESS_DENIED, "非管理员用户或要修改的不是当前登录用户");
         }
         // 查询要修改的用户在数据库中是否存在
-        User oldUser = userMapper.selectById(updateUser.getId());
+        User oldUser = userMapper.selectById(userUpdateRequest.getId());
         if (oldUser == null || oldUser.getIsDelete() == USER_DELETED) {
             throw new BusinessException(RESOURCE_NOT_FOUND, "要修改的用户不存在");
         }
+        User updateUser = new User();
+        BeanUtils.copyProperties(userUpdateRequest, updateUser);
         return userMapper.updateById(updateUser);
     }
 

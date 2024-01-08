@@ -34,7 +34,7 @@ springdoc:
   api-docs:
     path: /v3/api-docs # 对于 Json 格式的 OpenAPI 文档的自定义路径
   group-configs:
-    - group: 'default'
+    - group: 'togethernow'
       paths-to-match: '/**'
       packages-to-scan: com.wen.togethernow.controller # 修改为自己的controller包路径
 # knife4j的增强配置，不需要增强可以不配

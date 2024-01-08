@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.wen.togethernow.model.request.UserLoginRequest;
 import com.wen.togethernow.model.request.UserRegisterRequest;
 import com.wen.togethernow.model.request.UserSearchRequest;
+import com.wen.togethernow.model.request.UserUpdateRequest;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
@@ -86,11 +87,11 @@ public interface UserService extends IService<User> {
     /**
      * 修改用户信息的业务接口
      *
-     * @param updateUser 要修改的用户
+     * @param userUpdateRequest 要修改的用户
      * @param loginUser 当前登录用户
      * @return 返回更新的用户数量
      */
-    int updateUser(User updateUser, User loginUser);
+    int updateUser(UserUpdateRequest userUpdateRequest, User loginUser);
 
     /**
      * 用户脱敏的业务层接口
@@ -108,4 +109,5 @@ public interface UserService extends IService<User> {
      * @return 返回脱敏的用户信息
      */
     List<User> recommendUsers(PageRequest pageRequest, HttpServletRequest request);
+
 }

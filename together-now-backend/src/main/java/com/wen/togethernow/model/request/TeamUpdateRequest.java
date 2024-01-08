@@ -1,17 +1,18 @@
 package com.wen.togethernow.model.request;
 
 import lombok.Data;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 队伍添加请求参数包装类
+ * 队伍更新请求参数包装类
  *
  * @author wen
  */
 @Data
-public class TeamAddRequest implements Serializable {
+public class TeamUpdateRequest implements Serializable {
     /**
      * 队伍名称
      */
@@ -33,6 +34,11 @@ public class TeamAddRequest implements Serializable {
     private Date expireTime;
 
     /**
+     * 队长的id
+     */
+    private Long userId;
+
+    /**
      * 状态，0-公开，1-私有，2-加密
      */
     private Integer teamStatus;
@@ -43,5 +49,5 @@ public class TeamAddRequest implements Serializable {
     private String teamPassword;
 
     @Serial
-    private static final long serialVersionUID = 2935509361810737902L;
+    private static final long serialVersionUID = -793135974622838053L;
 }
