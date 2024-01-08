@@ -1,21 +1,19 @@
-package com.wen.togethernow.model.request;
+package com.wen.togethernow.model.vo;
 
-import com.wen.togethernow.common.PageRequest;
+import com.wen.togethernow.model.domain.User;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 队伍查询请求参数包装类
+ * 队伍信息和队长信息封装类
  *
  * @author wen
  */
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class TeamSearchRequest extends PageRequest implements Serializable {
+public class TeamUserVO implements Serializable {
     /**
      * id
      */
@@ -30,11 +28,6 @@ public class TeamSearchRequest extends PageRequest implements Serializable {
      * 队伍描述
      */
     private String teamProfile;
-
-    /**
-     * 搜索关键字
-     */
-    private String searchText;
 
     /**
      * 最大人数
@@ -66,6 +59,11 @@ public class TeamSearchRequest extends PageRequest implements Serializable {
      */
     private Date updateTime;
 
+    /**
+     * 队长
+     */
+    private User captainUser;
+
     @Serial
-    private static final long serialVersionUID = -5751690936105301566L;
+    private static final long serialVersionUID = 7247578120918805413L;
 }

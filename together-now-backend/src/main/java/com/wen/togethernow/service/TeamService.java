@@ -4,8 +4,12 @@ import com.wen.togethernow.common.BaseResponse;
 import com.wen.togethernow.model.domain.Team;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wen.togethernow.model.request.TeamAddRequest;
+import com.wen.togethernow.model.request.TeamSearchRequest;
 import com.wen.togethernow.model.request.TeamUpdateRequest;
+import com.wen.togethernow.model.vo.TeamUserVO;
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.List;
 
 /**
 * @author wen
@@ -22,4 +26,14 @@ public interface TeamService extends IService<Team> {
      * @return 创建的队伍id
      */
     long addTeam(TeamAddRequest teamAddRequest, HttpServletRequest request);
+
+    /**
+     * 查询队伍的业务层接口
+     *
+     * @param teamSearchRequest 查询条件
+     * @param request 前端http请求
+     * @return 队伍和队长的封装类
+     */
+    List<TeamUserVO> searchTeam(TeamSearchRequest teamSearchRequest, HttpServletRequest request);
+
 }

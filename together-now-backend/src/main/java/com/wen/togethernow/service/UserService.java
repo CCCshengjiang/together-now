@@ -102,6 +102,14 @@ public interface UserService extends IService<User> {
     List<User> getSafetyUser(Page<User> userPageList);
 
     /**
+     * 用户脱敏的业务层接口
+     *
+     * @param originUser 原始的用户信息
+     * @return 脱敏的用户
+     */
+    User getSafetyUser(User originUser);
+
+    /**
      * 用户推荐的业务层接口
      *
      * @param pageRequest 接收前端的分页参数

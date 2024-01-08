@@ -230,43 +230,42 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         List<User> safetyUsers = new ArrayList<>();
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        // 拿到前端传递的信息
-        String userAccount = userSearchRequest.getUserAccount();
-        Integer userRole = userSearchRequest.getUserRole();
-        Integer userStatus = userSearchRequest.getUserStatus();
-        String phone = userSearchRequest.getPhone();
-        String email = userSearchRequest.getEmail();
-        Integer gender = userSearchRequest.getGender();
-        String idCode = userSearchRequest.getIdCode();
-        String username = userSearchRequest.getUsername();
-        Date createTime = userSearchRequest.getCreateTime();
         // 根据信息查询,如果信息全部为空，返回所有用户列表
+        String userAccount = userSearchRequest.getUserAccount();
         if (userAccount != null) {
             queryWrapper.eq("user_account", userAccount);
         }
+        Integer userRole = userSearchRequest.getUserRole();
         if (userRole != null) {
             queryWrapper.eq("user_role", userRole);
         }
+        Integer userStatus = userSearchRequest.getUserStatus();
         if (userStatus != null) {
             queryWrapper.eq("user_status", userStatus);
         }
+        String phone = userSearchRequest.getPhone();
         if (phone != null) {
             queryWrapper.like("phone", phone);
         }
+        String email = userSearchRequest.getEmail();
         if (email != null) {
             queryWrapper.like("email", email);
         }
+        Integer gender = userSearchRequest.getGender();
         if (gender != null) {
             queryWrapper.eq("gender", gender);
         }
+        String idCode = userSearchRequest.getIdCode();
         if (idCode != null) {
             queryWrapper.eq("id_code", idCode);
         }
+        String username = userSearchRequest.getUsername();
         if (username != null) {
             queryWrapper.like("username", username);
         }
+        Date createTime = userSearchRequest.getCreateTime();
         if (createTime != null) {
-            queryWrapper.eq("create_time", createTime);
+            queryWrapper.lt("create_time", createTime);
         }
         List<User> users = userMapper.selectList(queryWrapper);
         // 用户信息脱敏
@@ -315,7 +314,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * 更新用户的实现
      *
      * @param userUpdateRequest 要修改的用户
-     * @param loginUser 当前登录用户
+     * @param loginUser         当前登录用户
      * @return 更新的用户数量
      */
     @Override
@@ -411,6 +410,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @param originUser 原始的用户信息
      * @return 脱敏的用户
      */
+    @Override
     public User getSafetyUser(User originUser) {
         if (originUser == null) {
             return null;

@@ -7,6 +7,8 @@ import com.wen.togethernow.model.domain.Team;
 import com.wen.togethernow.model.domain.User;
 import com.wen.togethernow.model.domain.UserTeam;
 import com.wen.togethernow.model.request.TeamAddRequest;
+import com.wen.togethernow.model.request.TeamSearchRequest;
+import com.wen.togethernow.model.vo.TeamUserVO;
 import com.wen.togethernow.service.TeamService;
 import com.wen.togethernow.mapper.TeamMapper;
 import com.wen.togethernow.service.UserService;
@@ -19,23 +21,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 
 import static com.wen.togethernow.common.BaseCode.*;
 import static com.wen.togethernow.constant.TeamConstant.*;
 
 /**
-* @author wen
-* @ description 针对表【team(队伍表)】的数据库操作Service实现
-* @ createDate 2024-01-08 15:18:03
-*/
+ * @author wen
+ * @ description 针对表【team(队伍表)】的数据库操作Service实现
+ * @ createDate 2024-01-08 15:18:03
+ */
 @Service
 public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
-    implements TeamService{
-
-    @Resource
-    private TeamMapper teamMapper;
+        implements TeamService {
 
     @Resource
     private UserService userService;
@@ -47,11 +45,11 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
      * 创建队伍的业务实现
      *
      * @param teamAddRequest 队伍信息
-     * @param request http请求
+     * @param request        http请求
      * @return 创建后的队伍id
      */
     @Override
-    @Transactional(rollbackFor = Exception.class) //事务
+    @Transactional(rollbackFor = Exception.class) //开启事务
     public long addTeam(TeamAddRequest teamAddRequest, HttpServletRequest request) {
         //1. 请求参数是否为空
         if (teamAddRequest == null || request == null) {
@@ -88,16 +86,107 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
     }
 
     /**
+     * 查询队伍的业务实现
+     *
+     * @param teamSearchRequest 查询条件
+     * @param request           前端http请求
+     * @return 队伍和队长的封装类
+     */
+    @Override
+    public List<TeamUserVO> searchTeam(TeamSearchRequest teamSearchRequest, HttpServletRequest request) {
+        // 非空判断
+        if (teamSearchRequest == null || request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
+        //1. 判断是否登录
+        User currentUser = userService.getCurrentUser(request);
+        if (currentUser == null) {
+            throw new BusinessException(AUTH_FAILURE);
+        }
+        //2. 从请求参数中取出队伍信息，如果存在则作为查询条件
+        QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
+        getTeamSearchQuery(teamSearchRequest, queryWrapper);
+        //3. 只有管理员才能查询非公开的房间
+        Integer teamStatus;
+        if (userService.isAdmin(currentUser)) {
+            teamStatus = teamSearchRequest.getTeamStatus();
+        } else {
+            teamStatus = PUBLIC_TEAM_STATUS;
+        }
+        if (teamStatus != null) {
+            queryWrapper.eq("team_status", teamStatus);
+        }
+        // 4. 队伍查询完成之后,判空
+        List<Team> teamList = list(queryWrapper);
+        if (teamList.isEmpty()) {
+            return new ArrayList<>();
+        }
+        // 5. 关联查询队长的信息
+        List<TeamUserVO> teamUserList = new ArrayList<>();
+        for (Team team : teamList) {
+            Long userId = team.getUserId();
+            if (userId == null) {
+                continue;
+            }
+            // 用户信息脱敏
+            User user = userService.getById(userId);
+            User safetyUser = userService.getSafetyUser(user);
+            // 队伍信息脱敏
+            TeamUserVO teamUserVO = new TeamUserVO();
+            BeanUtils.copyProperties(team, teamUserVO);
+            teamUserVO.setCaptainUser(safetyUser);
+            teamUserList.add(teamUserVO);
+        }
+        return teamUserList;
+    }
+
+    /**
+     * 搜索队伍的查询条件
+     *
+     * @param teamSearchRequest 查询信息
+     * @param queryWrapper      查询
+     */
+    private void getTeamSearchQuery(TeamSearchRequest teamSearchRequest, QueryWrapper<Team> queryWrapper) {
+        Long teamId = teamSearchRequest.getId();
+        if (teamId != null && teamId >= 0) {
+            queryWrapper.eq("id", teamId);
+        }
+        String teamName = teamSearchRequest.getTeamName();
+        if (StringUtils.isNotBlank(teamName)) {
+            queryWrapper.like("team_name", teamName);
+        }
+        String teamProfile = teamSearchRequest.getTeamProfile();
+        if (StringUtils.isNotBlank(teamProfile)) {
+            queryWrapper.like("team_profile", teamProfile);
+        }
+        Integer maxNum = teamSearchRequest.getMaxNum();
+        if (maxNum != null && maxNum > 0) {
+            queryWrapper.eq("max_num", maxNum);
+        }
+        //3. 不展示已过期的队伍（根据过期时间筛选）
+        Date expireTime = teamSearchRequest.getExpireTime();
+        if (expireTime != null && expireTime.after(new Date())) {
+            queryWrapper.lt("expire_time", expireTime);
+        }
+        //4. 可以通过某个关键词同时对名称和描述查询
+        String searchText = teamSearchRequest.getSearchText();
+        if (StringUtils.isNotBlank(searchText)) {
+            queryWrapper.like("team_name", searchText).or().like("team_profile", searchText);
+        }
+    }
+
+    /**
      * 验证队伍信息的有效性
      *
      * @param teamAddRequest 队伍信息
-     * @param currentUser 当前登录用户
+     * @param currentUser    当前登录用户
      */
     private void validateTeamInfo(TeamAddRequest teamAddRequest, User currentUser) {
+        // TODO 有bug
         //   1. 创建人最多创建5个队伍
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", currentUser.getId());
-        if (count(queryWrapper) > 5) {
+        if (count(queryWrapper) >= 5) {
             throw new BusinessException(PARAMS_ERROR, "最多创建五个队伍");
         }
         //   2. 队伍人数【1-10】
@@ -125,9 +214,19 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         }
         //   7. 超时时间 > 当前时间
         Date expireTime = teamAddRequest.getExpireTime();
+        // 默认三天过期
+        expireTime = Optional.ofNullable(expireTime).orElseGet(() -> {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(new Date());
+            calendar.add(Calendar.DATE, 3);
+            return calendar.getTime();
+        });
         if (new Date().after(expireTime)) {
             throw new BusinessException(PARAMS_ERROR, "过期时间不符合要求");
+        } else {
+            teamAddRequest.setExpireTime(expireTime);
         }
+
     }
 }
 
