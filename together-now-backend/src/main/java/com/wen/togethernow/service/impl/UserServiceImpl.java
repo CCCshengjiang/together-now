@@ -5,10 +5,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.wen.togethernow.common.PageRequest;
 import com.wen.togethernow.exception.BusinessException;
 import com.wen.togethernow.model.domain.User;
 import com.wen.togethernow.model.request.UserLoginRequest;
-import com.wen.togethernow.model.request.UserPageRequest;
 import com.wen.togethernow.model.request.UserRegisterRequest;
 import com.wen.togethernow.model.request.UserSearchRequest;
 import com.wen.togethernow.service.UserService;
@@ -353,12 +353,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     /**
      * 用户推进的业务实现
      *
-     * @param userPageRequest 接收前端的分页参数
-     * @param request 前端http请求
+     * @param pageRequest 接收前端的分页参数
+     * @param request     前端http请求
      * @return 返回脱敏的用户列表
      */
     @Override
-    public List<User> recommendUsers(UserPageRequest userPageRequest, HttpServletRequest request) {
+    public List<User> recommendUsers(PageRequest pageRequest, HttpServletRequest request) {
         // 如果缓存中有，就从缓存中拿数据
         User currentUser = getCurrentUser(request);
         String redisKey = String.format("togethernow:user:recommend:%s", currentUser.getId());
@@ -368,7 +368,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         // 缓存没有就查询数据库
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        userPage = userMapper.selectPage(new Page<>(userPageRequest.getPageNum(), userPageRequest.getPageSize()), queryWrapper);
+        userPage = userMapper.selectPage(new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize()), queryWrapper);
         // 将查询到的数据写到缓存，设置过期时间为5min
         try {
             redisTemplate.opsForValue().set(redisKey, userPage, 5, TimeUnit.MINUTES);

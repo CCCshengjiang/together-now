@@ -1,13 +1,11 @@
 package com.wen.togethernow.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wen.togethernow.common.BaseResponse;
+import com.wen.togethernow.common.PageRequest;
 import com.wen.togethernow.common.utils.ReturnUtil;
 import com.wen.togethernow.exception.BusinessException;
 import com.wen.togethernow.model.domain.User;
 import com.wen.togethernow.model.request.UserLoginRequest;
-import com.wen.togethernow.model.request.UserPageRequest;
 import com.wen.togethernow.model.request.UserRegisterRequest;
 import com.wen.togethernow.model.request.UserSearchRequest;
 import com.wen.togethernow.service.UserService;
@@ -18,7 +16,7 @@ import java.util.List;
 import static com.wen.togethernow.common.BaseCode.*;
 
 /**
- * 用户接口类
+ * 用户接口
  *
  * @author wen
  */
@@ -95,7 +93,7 @@ public class UserController {
      * @return 查询到的脱敏用户列表
      */
     @GetMapping("/search")
-    public BaseResponse<List<User>> userSearch(@ModelAttribute UserSearchRequest userSearchRequest, HttpServletRequest request) {
+    public BaseResponse<List<User>> userSearch(UserSearchRequest userSearchRequest, HttpServletRequest request) {
         if (userSearchRequest == null || request == null) {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
@@ -174,11 +172,11 @@ public class UserController {
      * @return 返回分页用户列表
      */
     @GetMapping("/recommend")
-    public BaseResponse<List<User>> recommendUsers(@ModelAttribute UserPageRequest userPageRequest, HttpServletRequest request) {
+    public BaseResponse<List<User>> recommendUsers(PageRequest pageRequest, HttpServletRequest request) {
         if (request == null) {
             throw new BusinessException(PARAMS_ERROR);
         }
-        List<User> safetyUsers = userService.recommendUsers(userPageRequest, request);
+        List<User> safetyUsers = userService.recommendUsers(pageRequest, request);
 
         return ReturnUtil.success(safetyUsers);
     }
