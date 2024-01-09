@@ -6,10 +6,7 @@ import com.wen.togethernow.exception.BusinessException;
 import com.wen.togethernow.model.domain.Team;
 import com.wen.togethernow.model.domain.User;
 import com.wen.togethernow.model.domain.UserTeam;
-import com.wen.togethernow.model.request.TeamAddRequest;
-import com.wen.togethernow.model.request.TeamJoinRequest;
-import com.wen.togethernow.model.request.TeamSearchRequest;
-import com.wen.togethernow.model.request.TeamUpdateRequest;
+import com.wen.togethernow.model.request.*;
 import com.wen.togethernow.model.vo.TeamUserVO;
 import com.wen.togethernow.service.TeamService;
 import com.wen.togethernow.mapper.TeamMapper;
@@ -156,25 +153,25 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
         //2. 查询队伍是否存在
-        Long teamId = teamUpdateRequest.getId();
-        if (teamId == null || teamId <= 0) {
+        Long teamRequestId = teamUpdateRequest.getId();
+        if (teamRequestId == null || teamRequestId <= 0) {
             throw new BusinessException(RESOURCE_NOT_FOUND);
         }
         //3. 只有管理员或者队伍的创建者可以修改
         User currentUser = userService.getCurrentUser(request);
-        Team oldTeam = getById(teamId);
+        Team oldTeam = getById(teamRequestId);
         if (!userService.isAdmin(currentUser) && !Objects.equals(oldTeam.getUserId(), currentUser.getId())) {
             throw new BusinessException(ACCESS_DENIED);
         }
         //4. 如果队伍状态改为加密，需要设置密码
-        Integer teamStatus = teamUpdateRequest.getTeamStatus();
-        String teamPassword = teamUpdateRequest.getTeamPassword();
-        if (teamStatus != null && teamStatus == SECRET_TEAM_STATUS && StringUtils.isBlank(teamPassword)) {
-                throw new BusinessException(PARAMS_NULL_ERROR, "加密房间必须要设置密码");
+        Integer teamRequestStatus = teamUpdateRequest.getTeamStatus();
+        String teamRequestPassword = teamUpdateRequest.getTeamPassword();
+        if (teamRequestStatus != null && teamRequestStatus == SECRET_TEAM_STATUS && StringUtils.isBlank(teamRequestPassword)) {
+            throw new BusinessException(PARAMS_NULL_ERROR, "加密房间必须要设置密码");
 
         }
         // 如果要修改密码，先判断是否是加密队伍
-        if (StringUtils.isNotBlank(teamPassword) && oldTeam.getTeamStatus() != SECRET_TEAM_STATUS) {
+        if (StringUtils.isNotBlank(teamRequestPassword) && oldTeam.getTeamStatus() != SECRET_TEAM_STATUS) {
             throw new BusinessException(PARAMS_ERROR, "当前队伍不是加密队伍");
         }
         //5. 更新队伍
@@ -191,7 +188,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
      * 加入队伍的业务层实现
      *
      * @param teamJoinRequest 队伍信息
-     * @param request 前端请求
+     * @param request         前端请求
      * @return 是否加入成功
      */
     @Override
@@ -202,15 +199,12 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         }
         //1. 用户要登录且队伍要存在
         User currentUser = userService.getCurrentUser(request);
-        if (currentUser == null) {
-            throw new BusinessException(AUTH_FAILURE);
-        }
-        Long teamId = teamJoinRequest.getId();
-        if (teamId == null || teamId <= 0) {
+        Long teamRequestId = teamJoinRequest.getId();
+        if (teamRequestId == null || teamRequestId <= 0) {
             throw new BusinessException(RESOURCE_NOT_FOUND);
         }
-        Team team = getById(teamId);
-        if (!team.getId().equals(teamId)) {
+        Team team = getById(teamRequestId);
+        if (!team.getId().equals(teamRequestId)) {
             throw new BusinessException(RESOURCE_NOT_FOUND);
         }
         //2. 只能加入未过期的队伍
@@ -218,9 +212,9 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             throw new BusinessException(PARAMS_ERROR, "要加入的队伍已过期");
         }
         //3. 如果队伍是加密的，必须密码匹配
-        String teamPassword = teamJoinRequest.getTeamPassword();
+        String teamRequestPassword = teamJoinRequest.getTeamPassword();
         Integer status = team.getTeamStatus();
-        if (status == SECRET_TEAM_STATUS && (teamPassword == null || !Objects.equals(team.getTeamPassword(), teamPassword))) {
+        if (status == SECRET_TEAM_STATUS && (teamRequestPassword == null || !Objects.equals(team.getTeamPassword(), teamRequestPassword))) {
             throw new BusinessException(PARAMS_ERROR, "密码为空或密码不正确");
         }
         //4. 不能加入私有队伍
@@ -231,23 +225,117 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
         Long userId = currentUser.getId();
         queryWrapper.eq("user_id", userId);
-        if (userTeamService.count(queryWrapper) > 5) {
+        if (userTeamService.count(queryWrapper) >= 5) {
             throw new BusinessException(RESOURCE_NOT_FOUND, "每人最多有五个队伍");
         }
+        //6. 不能重复加入同一个队伍
+        queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("team_id", teamRequestId);
+        queryWrapper.eq("user_id", userId);
+        if (userTeamService.count(queryWrapper) > 0) {
+            throw new BusinessException(PARAMS_ERROR, "不能重复加入同一个队伍");
+        }
         //6. 只能加入未满员的队伍
-        queryWrapper = queryWrapper.eq("team_id", teamId);
-        System.out.println(userTeamService.count(queryWrapper));
+        queryWrapper = queryWrapper.eq("team_id", teamRequestId);
         if (userTeamService.count(queryWrapper) >= team.getMaxNum()) {
             throw new BusinessException(PARAMS_ERROR, "当前队伍已满员");
         }
         //7. 新增队伍用户的关联信息
         UserTeam userTeam = new UserTeam();
         userTeam.setUserId(userId);
-        userTeam.setTeamId(teamId);
+        userTeam.setTeamId(teamRequestId);
         userTeam.setJoinTime(new Date());
         boolean result = userTeamService.save(userTeam);
         if (!result) {
             throw new BusinessException(RESOURCE_NOT_FOUND);
+        }
+        return result;
+    }
+
+    /**
+     * 用户退出的业务实现
+     *
+     * @param teamQuitRequest 队伍信息
+     * @param request         http请求
+     * @return 是否退出成功
+     */
+    @Override
+    public boolean quitTeam(TeamQuitRequest teamQuitRequest, HttpServletRequest request) {
+        //1. 判空
+        if (teamQuitRequest == null || request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
+        //2. 用户是否登录且队伍是否存在
+        User currentUser = userService.getCurrentUser(request);
+        Long teamRequestId = teamQuitRequest.getId();
+        if (teamRequestId == null || teamRequestId <= 0) {
+            throw new BusinessException(PARAMS_ERROR);
+        }
+        //3. 检验是否已经加入这个队伍
+        QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
+        Long currentUserId = currentUser.getId();
+        queryWrapper.eq("team_id", teamRequestId);
+        queryWrapper.eq("user_id", currentUserId);
+        if (userTeamService.count(queryWrapper) == 0) {
+            throw new BusinessException(PARAMS_ERROR, "用户未加入改队伍");
+        }
+        //4. 队伍还有多人
+        queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("team_id", teamRequestId);
+        if (userTeamService.count(queryWrapper) > 1) {
+            return quitTeamMore(queryWrapper, teamRequestId, currentUserId);
+        }
+        //5. 如果队伍只剩一人，队伍解散
+        boolean result = userTeamService.remove(queryWrapper);
+        boolean teamResult = this.removeById(teamRequestId);
+        if (!result || !teamResult) {
+            throw new BusinessException(RESOURCE_NOT_FOUND);
+        }
+        return result;
+    }
+
+    /**
+     * 队伍中还有多人的退出队伍方法
+     *
+     * @param queryWrapper  查询条件
+     * @param teamRequestId 当前队伍id
+     * @param currentUserId 当前用户id
+     */
+    private boolean quitTeamMore(QueryWrapper<UserTeam> queryWrapper, long teamRequestId, long currentUserId) {
+       boolean result = false;
+        Team currentTeam = this.getById(teamRequestId);
+        //  1. 如果是队长，退出后权限转移给先来后到的用户
+        if (Objects.equals(currentTeam.getUserId(), currentUserId)) {
+            // 在用户队伍关系表中删除队长信息
+            queryWrapper.eq("user_id", currentUserId);
+            result = userTeamService.remove(queryWrapper);
+            if (!result) {
+                throw new BusinessException(RESOURCE_NOT_FOUND);
+            }
+            //获取整个队伍剩下的所有用户
+            queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("team_id", teamRequestId);
+            List<UserTeam> userTeamList = userTeamService.list(queryWrapper);
+            //看谁先来后到，队长权限给谁
+            Date firstJoinTime = new Date();
+            long captionUserId = 0;
+            for (UserTeam userTeam : userTeamList) {
+                queryWrapper.eq("user_id", userTeam.getUserId());
+                Date joinTime = userTeamService.getOne(queryWrapper).getJoinTime();
+                if (firstJoinTime.after(joinTime)) {
+                    captionUserId = userTeam.getUserId();
+                    firstJoinTime = joinTime;
+                }
+            }
+            currentTeam.setUserId(captionUserId);
+            this.updateById(currentTeam);
+        } else {
+            //  2. 不是队长就自己退出
+            queryWrapper.eq("user_id", currentUserId);
+            result = userTeamService.remove(queryWrapper);
+            if (!result) {
+                throw new BusinessException(RESOURCE_NOT_FOUND);
+            }
         }
         return result;
     }

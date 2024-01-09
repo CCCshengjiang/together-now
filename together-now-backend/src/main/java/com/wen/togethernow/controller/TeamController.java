@@ -3,10 +3,7 @@ package com.wen.togethernow.controller;
 import com.wen.togethernow.common.BaseResponse;
 import com.wen.togethernow.common.utils.ReturnUtil;
 import com.wen.togethernow.exception.BusinessException;
-import com.wen.togethernow.model.request.TeamAddRequest;
-import com.wen.togethernow.model.request.TeamJoinRequest;
-import com.wen.togethernow.model.request.TeamSearchRequest;
-import com.wen.togethernow.model.request.TeamUpdateRequest;
+import com.wen.togethernow.model.request.*;
 import com.wen.togethernow.model.vo.TeamUserVO;
 import com.wen.togethernow.service.TeamService;
 import jakarta.annotation.Resource;
@@ -94,5 +91,20 @@ public class TeamController {
         return ReturnUtil.success(result);
     }
 
+    /**
+     * 用户退出
+     *
+     * @param teamQuitRequest 队伍信息
+     * @param request 前端请求
+     * @return 是否退出成功
+     */
+    @PostMapping("/quit")
+    public BaseResponse<Boolean> quitTeam(@RequestBody TeamQuitRequest teamQuitRequest, HttpServletRequest request) {
+        if (teamQuitRequest == null || request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
+        boolean result = teamService.quitTeam(teamQuitRequest, request);
+        return ReturnUtil.success(result);
+    }
 
 }
