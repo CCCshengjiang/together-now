@@ -36,4 +36,12 @@ public interface TeamService extends IService<Team> {
      */
     List<TeamUserVO> searchTeam(TeamSearchRequest teamSearchRequest, HttpServletRequest request);
 
+    /**
+     * 更新队伍的业务层接口
+     *
+     * @param teamUpdateRequest 要更新的信息
+     * @param request 前端请求
+     * @return 是否更新成功
+     */
+    boolean updateTeam(TeamUpdateRequest teamUpdateRequest, HttpServletRequest request);
 }

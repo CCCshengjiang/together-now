@@ -8,6 +8,7 @@ import com.wen.togethernow.model.domain.User;
 import com.wen.togethernow.model.domain.UserTeam;
 import com.wen.togethernow.model.request.TeamAddRequest;
 import com.wen.togethernow.model.request.TeamSearchRequest;
+import com.wen.togethernow.model.request.TeamUpdateRequest;
 import com.wen.togethernow.model.vo.TeamUserVO;
 import com.wen.togethernow.service.TeamService;
 import com.wen.togethernow.mapper.TeamMapper;
@@ -70,7 +71,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         BeanUtils.copyProperties(teamAddRequest, team);
         boolean result = save(team);
         Long teamId = team.getId();
-        if (!result) {
+        if (!result || teamId == null) {
             throw new BusinessException(PARAMS_ERROR);
         }
         //5. 插入用户、队伍到关系表
@@ -138,6 +139,52 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             teamUserList.add(teamUserVO);
         }
         return teamUserList;
+    }
+
+    /**
+     * 更新队伍的业务层实现
+     *
+     * @param teamUpdateRequest 要更新的信息
+     * @param request           前端请求
+     * @return 是否更新成功
+     */
+    @Override
+    public boolean updateTeam(TeamUpdateRequest teamUpdateRequest, HttpServletRequest request) {
+        // 1. 请求参数是否为空
+        if (teamUpdateRequest == null || request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
+        //2. 查询队伍是否存在
+        Long teamId = teamUpdateRequest.getId();
+        if (teamId == null || teamId <= 0) {
+            throw new BusinessException(RESOURCE_NOT_FOUND);
+        }
+        //3. 只有管理员或者队伍的创建者可以修改
+        User currentUser = userService.getCurrentUser(request);
+        Team oldTeam = getById(teamId);
+        if (!userService.isAdmin(currentUser) && !Objects.equals(oldTeam.getUserId(), currentUser.getId())) {
+            throw new BusinessException(ACCESS_DENIED);
+        }
+        //4. 如果队伍状态改为加密，需要设置密码
+        Integer teamStatus = teamUpdateRequest.getTeamStatus();
+        String teamPassword = teamUpdateRequest.getTeamPassword();
+        if (teamStatus != null && teamStatus == SECRET_TEAM_STATUS) {
+            if (StringUtils.isBlank(teamPassword)) {
+                throw new BusinessException(PARAMS_NULL_ERROR, "加密房间必须要设置密码");
+            }
+        }
+        // 如果要修改密码，先判断是否是加密队伍
+        if (StringUtils.isNotBlank(teamPassword) && oldTeam.getTeamStatus() != SECRET_TEAM_STATUS) {
+            throw new BusinessException(PARAMS_ERROR, "当前队伍不是加密队伍");
+        }
+        //5. 更新队伍
+        Team updateTeam = new Team();
+        BeanUtils.copyProperties(teamUpdateRequest, updateTeam);
+        boolean result = updateById(updateTeam);
+        if (!result) {
+            throw new BusinessException(INTERNAL_ERROR);
+        }
+        return result;
     }
 
     /**

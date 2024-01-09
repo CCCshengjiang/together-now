@@ -11,7 +11,7 @@ public enum BaseCode {
     PARAMS_NULL_ERROR(40001, "请求参数为空", ""),
     AUTH_FAILURE(40100, "登陆状态异常", ""),
     INVALID_PASSWORD_ERROR(40102, "无效密码", ""),
-    ACCESS_DENIED(40300, "非管理员用户", ""),
+    ACCESS_DENIED(40300, "非管理员用户或权限不足", ""),
     RESOURCE_NOT_FOUND(40400, "请求的资源不存在", ""),
     INTERNAL_ERROR(50000, "服务器遇到了一个未知的错误而无法处理请求", ""),
     SERVICE_UNAVAILABLE(50300, "服务器正在维护或者过载。", ""),

@@ -14,6 +14,11 @@ import java.util.Date;
 @Data
 public class TeamUpdateRequest implements Serializable {
     /**
+     * id
+     */
+    private Long id;
+
+    /**
      * 队伍名称
      */
     private String teamName;
@@ -24,19 +29,9 @@ public class TeamUpdateRequest implements Serializable {
     private String teamProfile;
 
     /**
-     * 最大人数
-     */
-    private Integer maxNum;
-
-    /**
      * 过期时间
      */
     private Date expireTime;
-
-    /**
-     * 队长的id
-     */
-    private Long userId;
 
     /**
      * 状态，0-公开，1-私有，2-加密
