@@ -14,6 +14,7 @@ spring:
       port: 6379
       host: localhost
       database: 1
+      timeout: # PT2H30M 设置session的过期时间为2h30min
 
 # 配置端口号和全局访问路径
 server:

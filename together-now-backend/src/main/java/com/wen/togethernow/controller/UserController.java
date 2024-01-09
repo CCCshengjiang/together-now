@@ -143,6 +143,9 @@ public class UserController {
             throw new BusinessException(RESOURCE_NOT_FOUND, "用户不存在");
         }
         boolean removedById = userService.removeById(id);
+        if (!removedById) {
+            throw new BusinessException(RESOURCE_NOT_FOUND, "删除失败");
+        }
         return ReturnUtil.success(removedById);
     }
 
@@ -159,10 +162,8 @@ public class UserController {
         if (userUpdateRequest == null || request == null) {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
-        // 得到当前登录的用户
-        User loginUser = userService.getCurrentUser(request);
         // 修改用户
-        int result = userService.updateUser(userUpdateRequest, loginUser);
+        int result = userService.updateUser(userUpdateRequest, request);
         return ReturnUtil.success(result);
     }
 
@@ -178,7 +179,6 @@ public class UserController {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
         List<User> safetyUsers = userService.recommendUsers(pageRequest, request);
-
         return ReturnUtil.success(safetyUsers);
     }
 }

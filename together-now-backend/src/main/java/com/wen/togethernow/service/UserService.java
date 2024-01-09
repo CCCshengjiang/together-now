@@ -88,10 +88,10 @@ public interface UserService extends IService<User> {
      * 修改用户信息的业务接口
      *
      * @param userUpdateRequest 要修改的用户
-     * @param loginUser 当前登录用户
+     * @param request           前端请求
      * @return 返回更新的用户数量
      */
-    int updateUser(UserUpdateRequest userUpdateRequest, User loginUser);
+    int updateUser(UserUpdateRequest userUpdateRequest, HttpServletRequest request);
 
     /**
      * 用户脱敏的业务层接口

@@ -315,17 +315,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * 更新用户的实现
      *
      * @param userUpdateRequest 要修改的用户
-     * @param loginUser         当前登录用户
+     * @param request           前端请求
      * @return 更新的用户数量
      */
     @Override
-    public int updateUser(UserUpdateRequest userUpdateRequest, User loginUser) {
+    public int updateUser(UserUpdateRequest userUpdateRequest, HttpServletRequest request) {
         // 判空
-        if (userUpdateRequest == null || loginUser == null) {
+        if (userUpdateRequest == null || request == null) {
             throw new BusinessException(PARAMS_ERROR);
         }
+        // 得到当前用户的登录态
+        User currentUser = getCurrentUser(request);
         // 判断是否为管理员 或者 要修改的用户就是当前登录用户
-        if (!isAdmin(loginUser) && loginUser.getId().equals(userUpdateRequest.getId())) {
+        if (!isAdmin(currentUser) && currentUser.getId().equals(userUpdateRequest.getId())) {
             throw new BusinessException(ACCESS_DENIED, "非管理员用户或要修改的不是当前登录用户");
         }
         // 查询要修改的用户在数据库中是否存在
