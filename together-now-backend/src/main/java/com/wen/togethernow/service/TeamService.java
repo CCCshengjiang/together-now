@@ -60,4 +60,13 @@ public interface TeamService extends IService<Team> {
      * @return 是否退出成功
      */
     boolean quitTeam(TeamQuitRequest teamQuitRequest, HttpServletRequest request);
+
+    /**
+     * 解散队伍的业务层接口
+     *
+     * @param teamDisbandRequest 队伍信息
+     * @param request http请求
+     * @return 是否解散成功
+     */
+    boolean disbandTeam(TeamDisbandRequest teamDisbandRequest, HttpServletRequest request);
 }

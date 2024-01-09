@@ -40,6 +40,9 @@ public class TeamController {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
         long teamId = teamService.addTeam(teamAddRequest, request);
+        if (teamId <= 0) {
+            throw new BusinessException(INTERNAL_ERROR, "创建队伍错误");
+        }
         return ReturnUtil.success(teamId);
     }
 
@@ -72,6 +75,9 @@ public class TeamController {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
         boolean result = teamService.updateTeam(teamUpdateRequest, request);
+        if (!result) {
+            throw new BusinessException(INTERNAL_ERROR, "加入队伍错误");
+        }
         return ReturnUtil.success(result);
     }
 
@@ -88,6 +94,9 @@ public class TeamController {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
         boolean result = teamService.joinTeam(teamJoinRequest, request);
+        if (!result) {
+            throw new BusinessException(INTERNAL_ERROR, "加入队伍错误");
+        }
         return ReturnUtil.success(result);
     }
 
@@ -104,6 +113,28 @@ public class TeamController {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
         boolean result = teamService.quitTeam(teamQuitRequest, request);
+        if (!result) {
+            throw new BusinessException(INTERNAL_ERROR, "退出队伍错误");
+        }
+        return ReturnUtil.success(result);
+    }
+
+    /**
+     * 解散队伍
+     *
+     * @param teamDisbandRequest 队伍信息
+     * @param request http请求
+     * @return 是否解散成功
+     */
+    @PostMapping("/disband")
+    public BaseResponse<Boolean> disbandTeam(@RequestBody TeamDisbandRequest teamDisbandRequest, HttpServletRequest request) {
+        if (teamDisbandRequest == null || request== null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
+        boolean result = teamService.disbandTeam(teamDisbandRequest, request);
+        if (!result) {
+            throw new BusinessException(INTERNAL_ERROR, "解散队伍错误");
+        }
         return ReturnUtil.success(result);
     }
 

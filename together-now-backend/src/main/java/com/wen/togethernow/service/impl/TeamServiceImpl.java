@@ -18,10 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-
 import java.util.*;
-
 import static com.wen.togethernow.common.BaseCode.*;
 import static com.wen.togethernow.constant.TeamConstant.*;
 
@@ -56,10 +53,6 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         }
         //2. 是否登录，未登录不允许创建
         User currentUser = userService.getCurrentUser(request);
-
-        if (currentUser == null) {
-            throw new BusinessException(AUTH_FAILURE);
-        }
         //3. 校验队伍信息
         validateTeamInfo(teamAddRequest, currentUser);
         //4. 插入队伍信息到队伍表
@@ -99,9 +92,6 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         }
         //1. 判断是否登录
         User currentUser = userService.getCurrentUser(request);
-        if (currentUser == null) {
-            throw new BusinessException(AUTH_FAILURE);
-        }
         //2. 从请求参数中取出队伍信息，如果存在则作为查询条件
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
         getTeamSearchQuery(teamSearchRequest, queryWrapper);
@@ -154,12 +144,9 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         }
         //2. 查询队伍是否存在
         Long teamRequestId = teamUpdateRequest.getId();
-        if (teamRequestId == null || teamRequestId <= 0) {
-            throw new BusinessException(RESOURCE_NOT_FOUND);
-        }
+        Team oldTeam = isTeamExist(teamRequestId);
         //3. 只有管理员或者队伍的创建者可以修改
         User currentUser = userService.getCurrentUser(request);
-        Team oldTeam = getById(teamRequestId);
         if (!userService.isAdmin(currentUser) && !Objects.equals(oldTeam.getUserId(), currentUser.getId())) {
             throw new BusinessException(ACCESS_DENIED);
         }
@@ -177,11 +164,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         //5. 更新队伍
         Team updateTeam = new Team();
         BeanUtils.copyProperties(teamUpdateRequest, updateTeam);
-        boolean result = updateById(updateTeam);
-        if (!result) {
-            throw new BusinessException(INTERNAL_ERROR);
-        }
-        return result;
+        return updateById(updateTeam);
     }
 
     /**
@@ -200,13 +183,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         //1. 用户要登录且队伍要存在
         User currentUser = userService.getCurrentUser(request);
         Long teamRequestId = teamJoinRequest.getId();
-        if (teamRequestId == null || teamRequestId <= 0) {
-            throw new BusinessException(RESOURCE_NOT_FOUND);
-        }
-        Team team = getById(teamRequestId);
-        if (!team.getId().equals(teamRequestId)) {
-            throw new BusinessException(RESOURCE_NOT_FOUND);
-        }
+        Team team = isTeamExist(teamRequestId);
         //2. 只能加入未过期的队伍
         if (team.getExpireTime().before(new Date())) {
             throw new BusinessException(PARAMS_ERROR, "要加入的队伍已过期");
@@ -245,11 +222,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         userTeam.setUserId(userId);
         userTeam.setTeamId(teamRequestId);
         userTeam.setJoinTime(new Date());
-        boolean result = userTeamService.save(userTeam);
-        if (!result) {
-            throw new BusinessException(RESOURCE_NOT_FOUND);
-        }
-        return result;
+        return userTeamService.save(userTeam);
     }
 
     /**
@@ -260,6 +233,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
      * @return 是否退出成功
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean quitTeam(TeamQuitRequest teamQuitRequest, HttpServletRequest request) {
         //1. 判空
         if (teamQuitRequest == null || request == null) {
@@ -268,9 +242,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         //2. 用户是否登录且队伍是否存在
         User currentUser = userService.getCurrentUser(request);
         Long teamRequestId = teamQuitRequest.getId();
-        if (teamRequestId == null || teamRequestId <= 0) {
-            throw new BusinessException(PARAMS_ERROR);
-        }
+        Team team = isTeamExist(teamRequestId);
         //3. 检验是否已经加入这个队伍
         QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
         Long currentUserId = currentUser.getId();
@@ -286,12 +258,59 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             return quitTeamMore(queryWrapper, teamRequestId, currentUserId);
         }
         //5. 如果队伍只剩一人，队伍解散
-        boolean result = userTeamService.remove(queryWrapper);
+        boolean result = userTeamService.removeById(team.getId());
         boolean teamResult = this.removeById(teamRequestId);
-        if (!result || !teamResult) {
+        return result && teamResult;
+    }
+
+    /**
+     * 解散队伍的业务层实现
+     *
+     * @param teamDisbandRequest 队伍信息
+     * @param request http请求
+     * @return 是否解散成功
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean disbandTeam(TeamDisbandRequest teamDisbandRequest, HttpServletRequest request) {
+        // 1. 判空
+        if (teamDisbandRequest == null || request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
+        // 2. 是否登录且队伍是否存在
+        User currentUser = userService.getCurrentUser(request);
+        Long teamRequestId = teamDisbandRequest.getId();
+        Team team = isTeamExist(teamRequestId);
+        // 3. 判断当前用户是不是队长
+        if (!team.getUserId().equals(currentUser.getId())) {
+            throw new BusinessException(ACCESS_DENIED);
+        }
+        // 4. 移除所有加入队伍的关联信息
+        QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
+        userTeamQueryWrapper.eq("team_id", team.getId());
+        boolean result = userTeamService.remove(userTeamQueryWrapper);
+        if (!result) {
+            throw new BusinessException(INTERNAL_ERROR, "关联信息删除失败");
+        }
+        // 5. 删除队伍
+        return this.removeById(teamRequestId);
+    }
+
+    /**
+     * 判断队伍是否存在
+     *
+     * @param teamRequestId 队伍id
+     * @return 返回存在的队伍
+     */
+    private Team isTeamExist(Long teamRequestId) {
+        if (teamRequestId == null || teamRequestId <= 0) {
+            throw new BusinessException(PARAMS_ERROR);
+        }
+        Team team = this.getById(teamRequestId);
+        if (team == null) {
             throw new BusinessException(RESOURCE_NOT_FOUND);
         }
-        return result;
+        return team;
     }
 
     /**
@@ -333,9 +352,6 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             //  2. 不是队长就自己退出
             queryWrapper.eq("user_id", currentUserId);
             result = userTeamService.remove(queryWrapper);
-            if (!result) {
-                throw new BusinessException(RESOURCE_NOT_FOUND);
-            }
         }
         return result;
     }

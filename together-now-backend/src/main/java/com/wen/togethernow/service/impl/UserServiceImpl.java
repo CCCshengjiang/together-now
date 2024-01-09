@@ -23,11 +23,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
-
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
 import static com.wen.togethernow.common.BaseCode.*;
 import static com.wen.togethernow.constant.UserConstant.*;
 
@@ -383,28 +380,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         // 返回脱敏的用户信息
         return getSafetyUser(userPage);
-    }
-
-    /**
-     * 使用SQL根据标签查询用户（暂时弃用）
-     *
-     * @param tagNameList 标签
-     * @return 脱敏的用户信息
-     */
-    @Deprecated(since = "2.0", forRemoval = true)
-    private List<User> userSearchByTagsUseSql(List<String> tagNameList) {
-        if (tagNameList.isEmpty()) {
-            throw new BusinessException(PARAMS_NULL_ERROR, "标签为空");
-        }
-        // 模糊匹配查询
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        for (String tagName : tagNameList) {
-            queryWrapper = queryWrapper.like("tags", tagName);
-        }
-        List<User> users = userMapper.selectList(queryWrapper);
-        return users.stream()
-                .map(this::getSafetyUser)
-                .collect(Collectors.toList());
     }
 
     /**
