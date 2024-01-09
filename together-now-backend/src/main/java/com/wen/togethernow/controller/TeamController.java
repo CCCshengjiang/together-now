@@ -4,6 +4,7 @@ import com.wen.togethernow.common.BaseResponse;
 import com.wen.togethernow.common.utils.ReturnUtil;
 import com.wen.togethernow.exception.BusinessException;
 import com.wen.togethernow.model.request.TeamAddRequest;
+import com.wen.togethernow.model.request.TeamJoinRequest;
 import com.wen.togethernow.model.request.TeamSearchRequest;
 import com.wen.togethernow.model.request.TeamUpdateRequest;
 import com.wen.togethernow.model.vo.TeamUserVO;
@@ -52,7 +53,7 @@ public class TeamController {
      * @param request           前端http请求
      * @return 队伍和队长的封装类
      */
-    @PostMapping("/search")
+    @GetMapping ("/search")
     public BaseResponse<List<TeamUserVO>> searchTeam(TeamSearchRequest teamSearchRequest, HttpServletRequest request) {
         if (teamSearchRequest == null || request == null) {
             throw new BusinessException(PARAMS_NULL_ERROR);
@@ -69,12 +70,29 @@ public class TeamController {
      * @return 是否更新成功
      */
     @PostMapping("/update")
-    public BaseResponse<Boolean> updateTeam(TeamUpdateRequest teamUpdateRequest, HttpServletRequest request) {
+    public BaseResponse<Boolean> updateTeam(@RequestBody TeamUpdateRequest teamUpdateRequest, HttpServletRequest request) {
         if (teamUpdateRequest == null || request == null) {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
         boolean result = teamService.updateTeam(teamUpdateRequest, request);
         return ReturnUtil.success(result);
     }
+
+    /**
+     * 加入队伍
+     *
+     * @param teamJoinRequest 队伍的信息
+     * @param request 前端请求
+     * @return 是否加入成功
+     */
+    @PostMapping("/join")
+    public BaseResponse<Boolean> joinTeam(@RequestBody TeamJoinRequest teamJoinRequest, HttpServletRequest request) {
+        if (teamJoinRequest == null || request== null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
+        boolean result = teamService.joinTeam(teamJoinRequest, request);
+        return ReturnUtil.success(result);
+    }
+
 
 }

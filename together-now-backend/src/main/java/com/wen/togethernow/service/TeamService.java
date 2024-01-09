@@ -4,6 +4,7 @@ import com.wen.togethernow.common.BaseResponse;
 import com.wen.togethernow.model.domain.Team;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wen.togethernow.model.request.TeamAddRequest;
+import com.wen.togethernow.model.request.TeamJoinRequest;
 import com.wen.togethernow.model.request.TeamSearchRequest;
 import com.wen.togethernow.model.request.TeamUpdateRequest;
 import com.wen.togethernow.model.vo.TeamUserVO;
@@ -44,4 +45,13 @@ public interface TeamService extends IService<Team> {
      * @return 是否更新成功
      */
     boolean updateTeam(TeamUpdateRequest teamUpdateRequest, HttpServletRequest request);
+
+    /**
+     * 加入队伍的业务层接口
+     *
+     * @param teamJoinRequest 队伍信息
+     * @param request 前端请求
+     * @return 是否加入成功
+     */
+    boolean joinTeam(TeamJoinRequest teamJoinRequest, HttpServletRequest request);
 }

@@ -7,6 +7,7 @@ import com.wen.togethernow.model.domain.Team;
 import com.wen.togethernow.model.domain.User;
 import com.wen.togethernow.model.domain.UserTeam;
 import com.wen.togethernow.model.request.TeamAddRequest;
+import com.wen.togethernow.model.request.TeamJoinRequest;
 import com.wen.togethernow.model.request.TeamSearchRequest;
 import com.wen.togethernow.model.request.TeamUpdateRequest;
 import com.wen.togethernow.model.vo.TeamUserVO;
@@ -168,10 +169,9 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         //4. 如果队伍状态改为加密，需要设置密码
         Integer teamStatus = teamUpdateRequest.getTeamStatus();
         String teamPassword = teamUpdateRequest.getTeamPassword();
-        if (teamStatus != null && teamStatus == SECRET_TEAM_STATUS) {
-            if (StringUtils.isBlank(teamPassword)) {
+        if (teamStatus != null && teamStatus == SECRET_TEAM_STATUS && StringUtils.isBlank(teamPassword)) {
                 throw new BusinessException(PARAMS_NULL_ERROR, "加密房间必须要设置密码");
-            }
+
         }
         // 如果要修改密码，先判断是否是加密队伍
         if (StringUtils.isNotBlank(teamPassword) && oldTeam.getTeamStatus() != SECRET_TEAM_STATUS) {
@@ -183,6 +183,71 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         boolean result = updateById(updateTeam);
         if (!result) {
             throw new BusinessException(INTERNAL_ERROR);
+        }
+        return result;
+    }
+
+    /**
+     * 加入队伍的业务层实现
+     *
+     * @param teamJoinRequest 队伍信息
+     * @param request 前端请求
+     * @return 是否加入成功
+     */
+    @Override
+    public boolean joinTeam(TeamJoinRequest teamJoinRequest, HttpServletRequest request) {
+        // 参数判空
+        if (teamJoinRequest == null || request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
+        //1. 用户要登录且队伍要存在
+        User currentUser = userService.getCurrentUser(request);
+        if (currentUser == null) {
+            throw new BusinessException(AUTH_FAILURE);
+        }
+        Long teamId = teamJoinRequest.getId();
+        if (teamId == null || teamId <= 0) {
+            throw new BusinessException(RESOURCE_NOT_FOUND);
+        }
+        Team team = getById(teamId);
+        if (!team.getId().equals(teamId)) {
+            throw new BusinessException(RESOURCE_NOT_FOUND);
+        }
+        //2. 只能加入未过期的队伍
+        if (team.getExpireTime().before(new Date())) {
+            throw new BusinessException(PARAMS_ERROR, "要加入的队伍已过期");
+        }
+        //3. 如果队伍是加密的，必须密码匹配
+        String teamPassword = teamJoinRequest.getTeamPassword();
+        Integer status = team.getTeamStatus();
+        if (status == SECRET_TEAM_STATUS && (teamPassword == null || !Objects.equals(team.getTeamPassword(), teamPassword))) {
+            throw new BusinessException(PARAMS_ERROR, "密码为空或密码不正确");
+        }
+        //4. 不能加入私有队伍
+        if (status == PRIVATE_TEAM_STATUS) {
+            throw new BusinessException(PARAMS_ERROR, "私密队伍不允许加入");
+        }
+        //5. 用户最多或创建加入5个队伍
+        QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
+        Long userId = currentUser.getId();
+        queryWrapper.eq("user_id", userId);
+        if (userTeamService.count(queryWrapper) > 5) {
+            throw new BusinessException(RESOURCE_NOT_FOUND, "每人最多有五个队伍");
+        }
+        //6. 只能加入未满员的队伍
+        queryWrapper = queryWrapper.eq("team_id", teamId);
+        System.out.println(userTeamService.count(queryWrapper));
+        if (userTeamService.count(queryWrapper) >= team.getMaxNum()) {
+            throw new BusinessException(PARAMS_ERROR, "当前队伍已满员");
+        }
+        //7. 新增队伍用户的关联信息
+        UserTeam userTeam = new UserTeam();
+        userTeam.setUserId(userId);
+        userTeam.setTeamId(teamId);
+        userTeam.setJoinTime(new Date());
+        boolean result = userTeamService.save(userTeam);
+        if (!result) {
+            throw new BusinessException(RESOURCE_NOT_FOUND);
         }
         return result;
     }
@@ -230,10 +295,10 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
      */
     private void validateTeamInfo(TeamAddRequest teamAddRequest, User currentUser) {
         // TODO 有bug
-        //   1. 创建人最多创建5个队伍
-        QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
+        //   1. 创建人最多创建和加入5个队伍
+        QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", currentUser.getId());
-        if (count(queryWrapper) >= 5) {
+        if (userTeamService.count(queryWrapper) >= 5) {
             throw new BusinessException(PARAMS_ERROR, "最多创建五个队伍");
         }
         //   2. 队伍人数【1-10】
