@@ -92,17 +92,17 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         if (teamSearchRequest == null || request == null) {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
-        //1. 判断是否登录
+        // 1. 判断是否登录
         User currentUser = userService.getCurrentUser(request);
-        //2. 从请求参数中取出队伍信息，如果存在则作为查询条件
+        // 3. 只有管理员才能查询私密的队伍,普通用户只能查询公开和加密的队伍
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
-        getTeamSearchQuery(teamSearchRequest, queryWrapper);
-        //3. 只有管理员才能查询私密的队伍,普通用户只能查询公开和加密的队伍
         if (userService.isAdmin(currentUser)) {
             queryWrapper.eq("team_status", teamSearchRequest.getTeamStatus());
         } else {
-            queryWrapper.in("team_status", PUBLIC_TEAM_STATUS, SECRET_TEAM_STATUS);
+            queryWrapper.and(wrapper -> wrapper.ne("team_status", PRIVATE_TEAM_STATUS));
         }
+        // 2. 从请求参数中取出队伍信息，如果存在则作为查询条件
+        getTeamSearchQuery(teamSearchRequest, queryWrapper);
         // 4. 队伍查询完成之后,判空
         List<Team> teamList = list(queryWrapper);
         if (teamList.isEmpty()) {
@@ -319,7 +319,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
      * @param currentUserId 当前用户id
      */
     private boolean quitTeamMore(QueryWrapper<UserTeam> queryWrapper, long teamRequestId, long currentUserId) {
-        boolean result = false;
+        boolean result;
         Team currentTeam = this.getById(teamRequestId);
         //  1. 如果是队长，退出后权限转移给先来后到的用户
         if (Objects.equals(currentTeam.getUserId(), currentUserId)) {
@@ -385,7 +385,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         //4. 可以通过某个关键词同时对名称和描述查询
         String searchText = teamSearchRequest.getSearchText();
         if (StringUtils.isNotBlank(searchText)) {
-            queryWrapper.like("team_name", searchText).or().like("team_profile", searchText);
+            queryWrapper.and(wrapper -> wrapper.like("team_name", searchText).or().like("team_profile", searchText));
         }
     }
 
