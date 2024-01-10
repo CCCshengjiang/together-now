@@ -1,4 +1,4 @@
-package com.wen.togethernow.model.request;
+package com.wen.togethernow.model.request.user;
 
 import lombok.Data;
 

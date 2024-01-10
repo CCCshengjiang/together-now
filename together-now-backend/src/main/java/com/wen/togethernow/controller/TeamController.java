@@ -3,7 +3,7 @@ package com.wen.togethernow.controller;
 import com.wen.togethernow.common.BaseResponse;
 import com.wen.togethernow.common.utils.ReturnUtil;
 import com.wen.togethernow.exception.BusinessException;
-import com.wen.togethernow.model.request.*;
+import com.wen.togethernow.model.request.team.*;
 import com.wen.togethernow.model.vo.TeamUserVO;
 import com.wen.togethernow.service.TeamService;
 import jakarta.annotation.Resource;

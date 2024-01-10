@@ -4,10 +4,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wen.togethernow.common.PageRequest;
 import com.wen.togethernow.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.wen.togethernow.model.request.UserLoginRequest;
-import com.wen.togethernow.model.request.UserRegisterRequest;
-import com.wen.togethernow.model.request.UserSearchRequest;
-import com.wen.togethernow.model.request.UserUpdateRequest;
+import com.wen.togethernow.model.request.user.UserLoginRequest;
+import com.wen.togethernow.model.request.user.UserRegisterRequest;
+import com.wen.togethernow.model.request.user.UserSearchRequest;
+import com.wen.togethernow.model.request.user.UserUpdateRequest;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;

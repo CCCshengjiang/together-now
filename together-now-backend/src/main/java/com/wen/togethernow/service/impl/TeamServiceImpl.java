@@ -6,7 +6,7 @@ import com.wen.togethernow.exception.BusinessException;
 import com.wen.togethernow.model.domain.Team;
 import com.wen.togethernow.model.domain.User;
 import com.wen.togethernow.model.domain.UserTeam;
-import com.wen.togethernow.model.request.*;
+import com.wen.togethernow.model.request.team.*;
 import com.wen.togethernow.model.vo.TeamUserVO;
 import com.wen.togethernow.service.TeamService;
 import com.wen.togethernow.mapper.TeamMapper;
@@ -18,7 +18,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.*;
+
 import static com.wen.togethernow.common.BaseCode.*;
 import static com.wen.togethernow.constant.TeamConstant.*;
 
@@ -95,15 +97,11 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         //2. 从请求参数中取出队伍信息，如果存在则作为查询条件
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
         getTeamSearchQuery(teamSearchRequest, queryWrapper);
-        //3. 只有管理员才能查询非公开的房间
-        Integer teamStatus;
+        //3. 只有管理员才能查询私密的队伍,普通用户只能查询公开和加密的队伍
         if (userService.isAdmin(currentUser)) {
-            teamStatus = teamSearchRequest.getTeamStatus();
+            queryWrapper.eq("team_status", teamSearchRequest.getTeamStatus());
         } else {
-            teamStatus = PUBLIC_TEAM_STATUS;
-        }
-        if (teamStatus != null) {
-            queryWrapper.eq("team_status", teamStatus);
+            queryWrapper.in("team_status", PUBLIC_TEAM_STATUS, SECRET_TEAM_STATUS);
         }
         // 4. 队伍查询完成之后,判空
         List<Team> teamList = list(queryWrapper);
@@ -267,7 +265,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
      * 解散队伍的业务层实现
      *
      * @param teamDisbandRequest 队伍信息
-     * @param request http请求
+     * @param request            http请求
      * @return 是否解散成功
      */
     @Override
@@ -321,7 +319,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
      * @param currentUserId 当前用户id
      */
     private boolean quitTeamMore(QueryWrapper<UserTeam> queryWrapper, long teamRequestId, long currentUserId) {
-       boolean result = false;
+        boolean result = false;
         Team currentTeam = this.getById(teamRequestId);
         //  1. 如果是队长，退出后权限转移给先来后到的用户
         if (Objects.equals(currentTeam.getUserId(), currentUserId)) {

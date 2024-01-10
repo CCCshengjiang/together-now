@@ -1,9 +1,8 @@
 package com.wen.togethernow.service;
 
-import com.wen.togethernow.common.BaseResponse;
 import com.wen.togethernow.model.domain.Team;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.wen.togethernow.model.request.*;
+import com.wen.togethernow.model.request.team.*;
 import com.wen.togethernow.model.vo.TeamUserVO;
 import jakarta.servlet.http.HttpServletRequest;
 
