@@ -7,7 +7,7 @@ interface UserCardListProps {
 
 const props = withDefaults(defineProps<UserCardListProps>(), {
       // @ts-ignore
-      userList: [] as UserType[],
+      teamList: [] as UserType[],
     }
 );
 </script>

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {ref} from "vue";
 import {useRouter} from "vue-router";
-import MyAxios from "../../plugs/myAxios.ts";
 import {showFailToast, showSuccessToast} from "vant";
+import myAxios from "../../plugs/myAxios.ts";
 
 const router = useRouter()
 
@@ -30,7 +30,7 @@ const onSubmit = async () => {
     ...addTeamData.value,
     status: Number(addTeamData.value.teamStatus)
   }
-  const res = await MyAxios.post("/team/add", postData)
+  const res = await myAxios.post("/team/add", postData)
   if (res?.code === 20000 && res.data) {
     showSuccessToast('添加成功');
     router.push({
