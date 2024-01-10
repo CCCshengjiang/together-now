@@ -2,7 +2,7 @@
 import {ref} from "vue";
 import {useRouter} from "vue-router";
 import {showFailToast, showSuccessToast} from "vant";
-import myAxios from "../plugs/myAxios";
+import myAxios from "../../plugs/myAxios";
 
 const router = useRouter();
 const userAccount = ref('');

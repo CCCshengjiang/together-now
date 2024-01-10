@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import {useRoute} from "vue-router";
 import {onMounted, ref} from "vue";
-import myAxios from "../plugs/myAxios.ts"
+import myAxios from "../../plugs/myAxios"
 import qs from 'qs';
-import UserCardList from "../components/UserCardList.vue";
+import UserCardList from "../../components/UserCardList.vue";
 
 const route = useRoute();
 
