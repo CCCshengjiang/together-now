@@ -106,9 +106,6 @@ const onSubmit = async () => {
         </van-button>
       </div>
     </van-form>
-    {{
-      addTeamData
-    }}
   </div>
 </template>
 

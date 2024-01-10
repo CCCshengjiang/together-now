@@ -7,30 +7,44 @@ import {showFailToast} from "vant";
 import myAxios from "../../plugs/myAxios.ts";
 
 const router = useRouter();
-const doJoinTeam = () => {
+const doAddTeam = () => {
   router.push({
     path: "/team/add",
   })
 }
-
 const teamList = ref([]);
-// 加载时只触发一次
-onMounted(async () =>{
-  const res = await myAxios.get("/team/search");
+const searchTeam = async (val = '') => {
+  const res = await myAxios.get("/team/search", {
+    params: {
+      searchText: val,
+    }
+  });
   if (res?.code === 20000) {
-    console.log('res.data' + res)
     teamList.value = res.data;
   }else {
     showFailToast('加载队伍失败，请刷新重试');
   }
+}
+
+
+// 加载时只触发一次
+onMounted( () =>{
+  searchTeam();
 })
+
+const searchText = ref('');
+const onSearch = (val) => {
+  searchTeam(val);
+};
 
 </script>
 
 <template>
   <div id="teamPage">
-    <van-button type="primary" @click="doJoinTeam">创建队伍</van-button>
+    <van-search v-model="searchText" placeholder="搜索队伍" @search="onSearch"/>
+    <van-button type="primary" @click="doAddTeam">创建队伍</van-button>
     <team-card-list :team-list="teamList"/>
+    <van-empty image="search" v-if="!teamList || teamList.length === 0" description="暂无符合要求队伍" />
   </div>
 
 </template>
