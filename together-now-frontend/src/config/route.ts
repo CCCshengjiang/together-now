@@ -6,6 +6,7 @@ import UserEditPages from "../pages/users/UserEditPage.vue";
 import SearchUsers from "../pages/users/UserSearchResultPage.vue";
 import UserLoginPage from "../pages/users/UserLoginPage.vue";
 import TeamAddPage from "../pages/teams/TeamAddPage.vue";
+import TeamUpdatePage from "../pages/teams/TeamUpdatePage.vue";
 
 // 定义一些路由
 // 每个路由都需要映射到一个组件。
@@ -18,7 +19,8 @@ const routes = [
     { path: '/user/edit', component: UserEditPages },
     { path: '/user/list', component: SearchUsers },
     { path: '/user/login', component: UserLoginPage },
-    { path: '/team/add', component: TeamAddPage }
+    { path: '/team/add', component: TeamAddPage },
+    { path: '/team/update', component: TeamUpdatePage },
 ]
 
 export default routes;
