@@ -97,7 +97,10 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         // 3. 只有管理员才能查询私密的队伍,普通用户只能查询公开和加密的队伍
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
         if (userService.isAdmin(currentUser)) {
-            queryWrapper.eq("team_status", teamSearchRequest.getTeamStatus());
+            Integer teamRequestStatus = teamSearchRequest.getTeamStatus();
+            if (teamRequestStatus != null) {
+                queryWrapper.eq("team_status", teamRequestStatus);
+            }
         } else {
             queryWrapper.and(wrapper -> wrapper.ne("team_status", PRIVATE_TEAM_STATUS));
         }
