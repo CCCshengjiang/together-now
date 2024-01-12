@@ -3,11 +3,13 @@ package com.wen.togethernow.controller;
 import com.wen.togethernow.common.BaseResponse;
 import com.wen.togethernow.common.utils.ReturnUtil;
 import com.wen.togethernow.exception.BusinessException;
+import com.wen.togethernow.model.domain.Team;
 import com.wen.togethernow.model.request.team.*;
 import com.wen.togethernow.model.vo.TeamUserVO;
 import com.wen.togethernow.service.TeamService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -60,6 +62,22 @@ public class TeamController {
         }
         List<TeamUserVO> teamUserList = teamService.searchTeam(teamSearchRequest, request);
         return ReturnUtil.success(teamUserList);
+    }
+
+    /**
+     * 查询单个队伍
+     *
+     * @param id 队伍id
+     * @return 脱敏的队伍信息
+     */
+    @GetMapping("/get")
+    public BaseResponse<TeamUserVO> getTeamById(Long id) {
+        if (id == null || id <= 0) {
+            throw new BusinessException(PARAMS_ERROR);
+        }
+        TeamUserVO teamUserVO = new TeamUserVO();
+        BeanUtils.copyProperties(teamService.getById(id), teamUserVO);
+        return ReturnUtil.success(teamUserVO);
     }
 
     /**
