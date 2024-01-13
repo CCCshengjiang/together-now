@@ -68,7 +68,7 @@ const doUpdateTeam =async (id: number) => {
         {{'最大人数' + team.maxNum}}
       </div>
       <div>
-        {{'注册时间' + team.expireTime}}
+        {{'过期时间' + team.expireTime}}
       </div>
       <div>
         {{'创建时间' + team.createTime}}

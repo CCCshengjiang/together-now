@@ -1,22 +1,30 @@
 <script setup lang="ts">
 import {onMounted, ref} from "vue";
-import {useRouter} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import {showFailToast, showSuccessToast} from "vant";
 import myAxios from "../../plugs/myAxios";
 
 const router = useRouter()
+const route = useRoute();
 
-const getTeamData = ref()
+const id = route.query.id;
+
+const getTeamData = ref({})
 
 // 获取之前的队伍信息
 onMounted(async () => {
+  if (id <= 0) {
+    showFailToast('加载队伍失败');
+    return;
+  }
   const res = await myAxios.get('/team/get', {
     params: {
-      id: null,
+      id,
     }
   });
   if (res?.code === 20000) {
     getTeamData.value = res.data;
+    result.value = getTeamData.value.expireTime; // 将过期时间赋给 result
   }else {
     showFailToast('加载队伍失败，请刷新重试');
   }
@@ -33,7 +41,8 @@ const minDate = new Date();
 const onSubmit = async () => {
   const postData = {
     ...getTeamData.value,
-    status: Number(getTeamData.value.teamStatus)
+    status: Number(getTeamData.value.teamStatus),
+    expireTime: new Date(result.value),
   }
   const res = await myAxios.post('/team/update', postData)
   if (res?.code === 20000 && res.data) {
@@ -67,11 +76,6 @@ const onSubmit = async () => {
             type="textarea"
             placeholder="请输入队伍描述"
         />
-        <van-field name="stepper" label="最大人数">
-          <template #input>
-            <van-stepper v-model="getTeamData.maxNum" max="20" min="3"/>
-          </template>
-        </van-field>
         <van-field
             v-model="result"
             is-link
