@@ -159,7 +159,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 
         }
         // 如果要修改密码，先判断是否是加密队伍
-        if (StringUtils.isNotBlank(teamRequestPassword) && oldTeam.getTeamStatus() != SECRET_TEAM_STATUS) {
+        if (StringUtils.isNotBlank(teamRequestPassword) && oldTeam.getTeamStatus() != SECRET_TEAM_STATUS && teamUpdateRequest.getTeamStatus() != SECRET_TEAM_STATUS) {
             throw new BusinessException(PARAMS_ERROR, "当前队伍不是加密队伍");
         }
         //5. 更新队伍
