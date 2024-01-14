@@ -77,6 +77,8 @@ const doUpdateTeam =async (id: number) => {
     <template #footer>
       <van-button size="small" plain type="primary" @click="doJoinTeam(team.id)">加入队伍</van-button>
       <van-button size="small" v-if="team.userId === currentUser?.id" plain type="success" @click="doUpdateTeam(team.id)">更新队伍</van-button>
+      <van-button size="small"  plain type="warning" @click="doUpdateTeam(team.id)">退出队伍</van-button>
+      <van-button size="small" v-if="team.userId === currentUser?.id" plain type="danger" @click="doUpdateTeam(team.id)">解散队伍</van-button>
     </template>
   </van-card>
 </template>
