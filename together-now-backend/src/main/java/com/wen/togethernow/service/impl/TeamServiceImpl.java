@@ -131,6 +131,36 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
     }
 
     /**
+     * 查询当前用户是队长的队伍
+     *
+     * @param request 前端请求
+     * @return 脱敏的队伍列表
+     */
+    @Override
+    public List<TeamUserVO> searchMyTeam(HttpServletRequest request) {
+        if (request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
+        // 根据当前用户id（队长id）查询队伍
+        User currentUser = userService.getCurrentUser(request);
+        QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
+        Long currentUserId = currentUser.getId();
+        queryWrapper.eq("user_id", currentUserId);
+        List<Team> teamList = this.list(queryWrapper);
+        // 队伍信息脱敏,设置队长信息
+        List<TeamUserVO> teamUserVOList = new ArrayList<>();
+        User captain = userService.getById(currentUserId);
+        User safetyCaptain = userService.getSafetyUser(captain);
+        for (Team team : teamList) {
+            TeamUserVO teamUserVO = new TeamUserVO();
+            BeanUtils.copyProperties(team, teamUserVO);
+            teamUserVO.setCaptainUser(safetyCaptain);
+            teamUserVOList.add(teamUserVO);
+        }
+        return teamUserVOList;
+    }
+
+    /**
      * 更新队伍的业务层实现
      *
      * @param teamUpdateRequest 要更新的信息

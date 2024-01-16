@@ -68,4 +68,13 @@ public interface TeamService extends IService<Team> {
      * @return 是否解散成功
      */
     boolean disbandTeam(TeamDisbandRequest teamDisbandRequest, HttpServletRequest request);
+
+    /**
+     * 查询当前用户加入的队伍
+     *
+     * @param request 前端请求
+     * @return 脱敏的队伍列表
+     */
+    List<TeamUserVO> searchMyTeam(HttpServletRequest request);
+
 }

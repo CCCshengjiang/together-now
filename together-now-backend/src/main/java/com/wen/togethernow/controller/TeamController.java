@@ -31,9 +31,6 @@ public class TeamController {
     @Resource
     private TeamService teamService;
 
-    @Resource
-    private UserService userService;
-
     /**
      * 创建队伍
      *
@@ -72,18 +69,15 @@ public class TeamController {
     /**
      * 查询当前用户加入的队伍
      *
-     * @param teamSearchRequest 队伍信息
      * @param request 前端请求
-     * @return 脱敏的用户列表
+     * @return 脱敏的队伍列表
      */
     @GetMapping ("/search/my")
-    public BaseResponse<List<TeamUserVO>> searchMyTeam(TeamSearchRequest teamSearchRequest, HttpServletRequest request) {
-        if (teamSearchRequest == null || request == null) {
+    public BaseResponse<List<TeamUserVO>> searchMyTeam(HttpServletRequest request) {
+        if (request == null) {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
-        User currentUser = userService.getCurrentUser(request);
-        teamSearchRequest.setUserId(currentUser.getId());
-        List<TeamUserVO> teamUserList = teamService.searchTeam(teamSearchRequest, request);
+        List<TeamUserVO> teamUserList = teamService.searchMyTeam(request);
         return ReturnUtil.success(teamUserList);
     }
 
