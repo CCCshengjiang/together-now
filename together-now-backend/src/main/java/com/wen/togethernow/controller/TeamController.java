@@ -4,9 +4,11 @@ import com.wen.togethernow.common.BaseResponse;
 import com.wen.togethernow.common.utils.ReturnUtil;
 import com.wen.togethernow.exception.BusinessException;
 import com.wen.togethernow.model.domain.Team;
+import com.wen.togethernow.model.domain.User;
 import com.wen.togethernow.model.request.team.*;
 import com.wen.togethernow.model.vo.TeamUserVO;
 import com.wen.togethernow.service.TeamService;
+import com.wen.togethernow.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.BeanUtils;
@@ -28,6 +30,9 @@ public class TeamController {
 
     @Resource
     private TeamService teamService;
+
+    @Resource
+    private UserService userService;
 
     /**
      * 创建队伍
@@ -60,6 +65,24 @@ public class TeamController {
         if (teamSearchRequest == null || request == null) {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
+        List<TeamUserVO> teamUserList = teamService.searchTeam(teamSearchRequest, request);
+        return ReturnUtil.success(teamUserList);
+    }
+
+    /**
+     * 查询当前用户加入的队伍
+     *
+     * @param teamSearchRequest 队伍信息
+     * @param request 前端请求
+     * @return 脱敏的用户列表
+     */
+    @GetMapping ("/search/my")
+    public BaseResponse<List<TeamUserVO>> searchMyTeam(TeamSearchRequest teamSearchRequest, HttpServletRequest request) {
+        if (teamSearchRequest == null || request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
+        User currentUser = userService.getCurrentUser(request);
+        teamSearchRequest.setUserId(currentUser.getId());
         List<TeamUserVO> teamUserList = teamService.searchTeam(teamSearchRequest, request);
         return ReturnUtil.success(teamUserList);
     }

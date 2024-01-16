@@ -364,6 +364,10 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
      * @param queryWrapper      查询
      */
     private void getTeamSearchQuery(TeamSearchRequest teamSearchRequest, QueryWrapper<Team> queryWrapper) {
+        Long userId = teamSearchRequest.getUserId();
+        if (userId != null && userId >= 0) {
+            queryWrapper.eq("user_id", userId);
+        }
         Long teamId = teamSearchRequest.getId();
         if (teamId != null && teamId >= 0) {
             queryWrapper.eq("id", teamId);
