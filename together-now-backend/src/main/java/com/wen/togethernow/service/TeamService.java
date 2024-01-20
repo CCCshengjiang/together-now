@@ -34,6 +34,22 @@ public interface TeamService extends IService<Team> {
     List<TeamUserVO> searchTeam(TeamSearchRequest teamSearchRequest, HttpServletRequest request);
 
     /**
+     * 查询当前用户是队长的队伍业务层接口
+     *
+     * @param request 前端请求
+     * @return 脱敏的队伍列表
+     */
+    List<TeamUserVO> searchCaptainTeam(HttpServletRequest request);
+
+    /**
+     * 查询当前用户已加入的队伍业务层接口
+     *
+     * @param request 前端请求
+     * @return 脱敏的队伍列表
+     */
+    List<TeamUserVO> searchJoinTeam(HttpServletRequest request);
+
+    /**
      * 更新队伍的业务层接口
      *
      * @param teamUpdateRequest 要更新的信息
@@ -69,12 +85,6 @@ public interface TeamService extends IService<Team> {
      */
     boolean disbandTeam(TeamDisbandRequest teamDisbandRequest, HttpServletRequest request);
 
-    /**
-     * 查询当前用户加入的队伍
-     *
-     * @param request 前端请求
-     * @return 脱敏的队伍列表
-     */
-    List<TeamUserVO> searchMyTeam(HttpServletRequest request);
+
 
 }

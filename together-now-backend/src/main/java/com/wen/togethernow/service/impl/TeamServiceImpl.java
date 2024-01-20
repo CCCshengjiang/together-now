@@ -137,14 +137,14 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
      * @return 脱敏的队伍列表
      */
     @Override
-    public List<TeamUserVO> searchMyTeam(HttpServletRequest request) {
+    public List<TeamUserVO> searchCaptainTeam(HttpServletRequest request) {
         if (request == null) {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
         // 根据当前用户id（队长id）查询队伍
         User currentUser = userService.getCurrentUser(request);
-        QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
         Long currentUserId = currentUser.getId();
+        QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", currentUserId);
         List<Team> teamList = this.list(queryWrapper);
         // 队伍信息脱敏,设置队长信息
@@ -158,6 +158,44 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             teamUserVOList.add(teamUserVO);
         }
         return teamUserVOList;
+    }
+
+    /**
+     * 查询当前用户已加入的队伍业务层接口
+     *
+     * @param request 前端请求
+     * @return 脱敏的用户列表
+     */
+    @Override
+    public List<TeamUserVO> searchJoinTeam(HttpServletRequest request) {
+        if (request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
+        // 获取当前登录用户
+        User currentUser = userService.getCurrentUser(request);
+        Long currentUserId = currentUser.getId();
+        // 在用户队伍关系表中查询队伍
+        QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
+        userTeamQueryWrapper.eq("user_id", currentUserId);
+        List<UserTeam> userTeamList = userTeamService.list(userTeamQueryWrapper);
+        // 根据查询到的队伍id，在队伍表中得到当前用户加入的队伍信息
+        List<TeamUserVO> safetyTeamList = new ArrayList<>();
+        for (UserTeam userTeam : userTeamList) {
+            // 得到队伍信息
+            Long teamId = userTeam.getTeamId();
+            Team team = this.getById(teamId);
+            // 队伍信息脱敏
+            TeamUserVO teamUserVO = new TeamUserVO();
+            BeanUtils.copyProperties(team, teamUserVO);
+            // 得到队长信息
+            Long captainId = team.getUserId();
+            User safetyCaptain = userService.getSafetyUser(userService.getById(captainId));
+            // 脱敏的队伍列表中设置队长信息
+            teamUserVO.setCaptainUser(safetyCaptain);
+            safetyTeamList.add(teamUserVO);
+        }
+        return safetyTeamList;
+
     }
 
     /**

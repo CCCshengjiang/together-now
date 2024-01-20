@@ -3,12 +3,9 @@ package com.wen.togethernow.controller;
 import com.wen.togethernow.common.BaseResponse;
 import com.wen.togethernow.common.utils.ReturnUtil;
 import com.wen.togethernow.exception.BusinessException;
-import com.wen.togethernow.model.domain.Team;
-import com.wen.togethernow.model.domain.User;
 import com.wen.togethernow.model.request.team.*;
 import com.wen.togethernow.model.vo.TeamUserVO;
 import com.wen.togethernow.service.TeamService;
-import com.wen.togethernow.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.BeanUtils;
@@ -67,18 +64,33 @@ public class TeamController {
     }
 
     /**
-     * 查询当前用户加入的队伍
+     * 查询当前用户是队长的队伍
      *
      * @param request 前端请求
      * @return 脱敏的队伍列表
      */
-    @GetMapping ("/search/my")
-    public BaseResponse<List<TeamUserVO>> searchMyTeam(HttpServletRequest request) {
+    @GetMapping ("/search/Captain")
+    public BaseResponse<List<TeamUserVO>> searchCaptainTeam(HttpServletRequest request) {
         if (request == null) {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
-        List<TeamUserVO> teamUserList = teamService.searchMyTeam(request);
+        List<TeamUserVO> teamUserList = teamService.searchCaptainTeam(request);
         return ReturnUtil.success(teamUserList);
+    }
+
+    /**
+     * 查询当前用户加入的队伍
+     *
+     * @param request 前端请求
+     * @return 安全的队伍列表
+     */
+    @GetMapping ("/search/join")
+    public BaseResponse<List<TeamUserVO>> searchJoinTeam(HttpServletRequest request) {
+        if (request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
+        List<TeamUserVO> result = teamService.searchJoinTeam(request);
+        return ReturnUtil.success(result);
     }
 
     /**
