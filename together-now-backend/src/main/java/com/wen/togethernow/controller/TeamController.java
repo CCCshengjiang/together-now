@@ -69,7 +69,7 @@ public class TeamController {
      * @param request 前端请求
      * @return 脱敏的队伍列表
      */
-    @GetMapping ("/search/Captain")
+    @GetMapping ("/search/captain")
     public BaseResponse<List<TeamUserVO>> searchCaptainTeam(HttpServletRequest request) {
         if (request == null) {
             throw new BusinessException(PARAMS_NULL_ERROR);
