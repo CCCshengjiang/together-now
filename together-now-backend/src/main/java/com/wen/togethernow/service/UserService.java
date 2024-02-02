@@ -118,4 +118,12 @@ public interface UserService extends IService<User> {
      */
     List<User> recommendUsers(PageRequest pageRequest, HttpServletRequest request);
 
+    /**
+     * 用户匹配的业务层接口
+     *
+     * @param num 需要匹配的用户数量
+     * @param request 前端请求
+     * @return 脱敏的用户列表
+     */
+    List<User> matchUsers(Long num, HttpServletRequest request);
 }

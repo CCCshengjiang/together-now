@@ -13,6 +13,8 @@ import com.wen.togethernow.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
 import java.util.List;
 import static com.wen.togethernow.common.BaseCode.*;
 
@@ -179,6 +181,22 @@ public class UserController {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
         List<User> safetyUsers = userService.recommendUsers(pageRequest, request);
+        return ReturnUtil.success(safetyUsers);
+    }
+
+    /**
+     * 用户匹配
+     *
+     * @param num 匹配的用户的数量
+     * @param request 前端请求
+     * @return 脱敏的用户列表
+     */
+    @GetMapping("/match")
+    public BaseResponse<List<User>> matchUsers(@RequestParam Long num, HttpServletRequest request) {
+        if (num == null || request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
+        List<User> safetyUsers = userService.matchUsers(num, request);
         return ReturnUtil.success(safetyUsers);
     }
 }

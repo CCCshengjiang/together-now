@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.wen.togethernow.common.PageRequest;
+import com.wen.togethernow.common.utils.AlgorithmUtils;
 import com.wen.togethernow.exception.BusinessException;
 import com.wen.togethernow.model.domain.User;
 import com.wen.togethernow.model.request.user.UserLoginRequest;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+
 import static com.wen.togethernow.common.BaseCode.*;
 import static com.wen.togethernow.constant.UserConstant.*;
 
@@ -354,7 +356,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     /**
-     * 用户推进的业务实现
+     * 用户推荐的业务实现
      *
      * @param pageRequest 接收前端的分页参数
      * @param request     前端http请求
@@ -380,6 +382,63 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         // 返回脱敏的用户信息
         return getSafetyUser(userPage);
+    }
+
+    /**
+     * 用户匹配的业务层实现
+     *
+     * @param num 需要匹配的用户数量
+     * @param request 前端请求
+     * @return 脱敏的用户列表
+     */
+    @Override
+    public List<User> matchUsers(Long num, HttpServletRequest request) {
+        // 参数校验
+        if (num == null || request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
+        // 如果需要的用户数量为0，直接返回空列表
+        if (num == 0) {
+            return new ArrayList<>();
+        }
+        // 1.得到当前用户的标签信息
+        User currentUser = this.getCurrentUser(request);
+        String curUserTags = currentUser.getTags();
+        Gson gson = new Gson();
+        List<String> curTags = gson.fromJson(curUserTags, new TypeToken<List<String>>() {
+        }.getType());
+        // 2.得到所有用户
+        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+        userQueryWrapper.isNotNull("tags");
+        userQueryWrapper.select("id", "tags");
+        List<User> userList = this.list(userQueryWrapper);
+        // 3.每个用户都和当前用户进行相似度匹配，存储匹配结果
+        HashMap<Long, Integer> getMatchUsers = new HashMap<>();
+        for (User user : userList) {
+            String userTags = user.getTags();
+            // 剔除自己
+            if (user.getId().equals(currentUser.getId())) {
+                continue;
+            }
+            List<String> tags = gson.fromJson(userTags, new TypeToken<List<String>>() {
+            }.getType());
+            // 根据标签进行相似度匹配
+            int distance = AlgorithmUtils.editDistance(curTags, tags);
+            getMatchUsers.put(user.getId(), distance);
+        }
+        // 4.只保留相似度最高的前num个用户
+        List<Map.Entry<Long, Integer>> sortedMatchUsers = getMatchUsers.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByValue())
+                .limit(num)
+                .toList();
+        // 5.返回脱敏的用户列表
+        List<User> safetyUsers = new ArrayList<>();
+        for (Map.Entry<Long, Integer> sortedMatchUser : sortedMatchUsers) {
+            Long userId = sortedMatchUser.getKey();
+            safetyUsers.add(this.getSafetyUser(this.getById(userId)));
+        }
+        return safetyUsers;
     }
 
     /**
