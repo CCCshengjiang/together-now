@@ -111,7 +111,15 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         if (teamList.isEmpty()) {
             return new ArrayList<>();
         }
-        // 5. 关联查询队长的信息
+        // 5. 得到当前用户已加入的队伍id
+        QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
+        userTeamQueryWrapper.eq("user_id", currentUser.getId());
+        List<UserTeam> hasJoinTeam = userTeamService.list(userTeamQueryWrapper);
+        Set<Long> hasJoinTeamId = new HashSet<>();
+        for (UserTeam userTeam : hasJoinTeam) {
+            hasJoinTeamId.add(userTeam.getTeamId());
+        }
+        // 6. 关联查询队长的信息
         List<TeamUserVO> teamUserList = new ArrayList<>();
         for (Team team : teamList) {
             Long userId = team.getUserId();
@@ -125,6 +133,9 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             TeamUserVO teamUserVO = new TeamUserVO();
             BeanUtils.copyProperties(team, teamUserVO);
             teamUserVO.setCaptainUser(safetyUser);
+            // 当前用户是否加入队伍
+            Long teamId = team.getId();
+            teamUserVO.setHasJoin(hasJoinTeamId.contains(teamId));
             teamUserList.add(teamUserVO);
         }
         return teamUserList;

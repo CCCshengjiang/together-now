@@ -60,9 +60,14 @@ public class TeamUserVO implements Serializable {
     private Date updateTime;
 
     /**
-     * 队长
+     * 队长信息
      */
     private User captainUser;
+
+    /**
+     * 当前用户是否加入队伍
+     */
+    private Boolean hasJoin;
 
     @Serial
     private static final long serialVersionUID = 7247578120918805413L;
