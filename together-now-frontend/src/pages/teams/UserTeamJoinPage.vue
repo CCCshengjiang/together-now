@@ -32,10 +32,6 @@ onMounted( () =>{
   searchTeam();
 })
 
-const searchText = ref('');
-const onSearch = (val) => {
-  searchTeam(val);
-};
 
 </script>
 
