@@ -1,18 +1,29 @@
 <script setup lang="ts">
-import {showToast} from "vant";
 import {useRouter} from "vue-router";
+import {ref} from "vue";
+import routes from "../config/route.ts";
 
 const router = useRouter();
+const DEFAULT_TITLE = '伙伴匹配';
+const title = ref(DEFAULT_TITLE);
+
+router.beforeEach((to) => {
+  const toPath = to.path;
+  const route = routes.find((route) => {
+    return toPath == route.path;
+  });
+  title.value = route?.title ?? DEFAULT_TITLE;
+});
+
 const onClickBack = () => history.back();
 const onClickSearch = () => {
   router.push('/search')
 }
-const onChange = (index) => showToast(`标签 ${index}`);
 </script>
 
 <template>
   <van-nav-bar
-      title="标题"
+      :title="title"
       left-text="返回"
       right-text="按钮"
       left-arrow
@@ -27,7 +38,7 @@ const onChange = (index) => showToast(`标签 ${index}`);
   <div id="content">
     <router-view/>
   </div>
-  <van-tabbar route @change="onChange">
+  <van-tabbar route >
     <van-tabbar-item to="/" icon="home-o" name="home">主页</van-tabbar-item>
     <van-tabbar-item to="/team" icon="friends-o" name="team">队伍</van-tabbar-item>
     <van-tabbar-item to="/user" icon="setting-o" name="user">个人</van-tabbar-item>

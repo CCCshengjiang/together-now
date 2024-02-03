@@ -34,7 +34,7 @@ onMounted(async ()=> {
 })
 
 const router = useRouter();
-const doUpdateTeam =async (id: number) => {
+const doUpdateTeam = (id: number) => {
   router.push({
     path: '/team/update',
     query: {
