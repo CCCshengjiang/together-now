@@ -366,13 +366,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public List<User> recommendUsers(PageRequest pageRequest, HttpServletRequest request) {
         // 如果缓存中有，就从缓存中拿数据
         User currentUser = getCurrentUser(request);
-        String redisKey = String.format("togethernow:user:recommend:%s", currentUser.getId());
+        Long currentUserId = currentUser.getId();
+        String redisKey = String.format("togethernow:user:recommend:%s", currentUserId);
         Page<User> userPage = (Page<User>) redisTemplate.opsForValue().get(redisKey);
         if (userPage != null) {
             return getSafetyUser(userPage);
         }
         // 缓存没有就查询数据库
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ne("id", currentUserId);
         userPage = userMapper.selectPage(new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize()), queryWrapper);
         // 将查询到的数据写到缓存，设置过期时间为5min
         try {
