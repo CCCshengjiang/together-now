@@ -10,6 +10,6 @@ export type UserType = {
     userStatus: number,
     userRole: number,
     idCode: string,
-    tags: string[],
+    tags: string,
     createTime: Date,
 }
