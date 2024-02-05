@@ -6,12 +6,12 @@ import qs from 'qs';
 import UserCardList from "../../components/UserCardList.vue";
 
 const route = useRoute();
-
 const {tags} = route.query;
-
 const userList = ref([])
+const loading = ref(true);
 
 onMounted(async() => {
+  loading.value = true;
 // Optionally the request above could also be done as
   const searchUserList = await myAxios.get('/user/search/tags', {
     params: {
@@ -36,12 +36,13 @@ onMounted(async() => {
     })
     userList.value = searchUserList;
   }
+  loading.value = false
 })
 
 </script>
 
 <template>
-  <user-card-list :user-list="userList"/>
+  <user-card-list :user-list="userList" :loading="loading"/>
   <van-empty image="search" v-if="!userList || userList.length === 0" description="暂无符合要求用户" />
 </template>
 

@@ -29,18 +29,30 @@ const logout = async () => {
 </script>
 
 <template>
-  <van-cell title="头像">
-    <img style="height: 47px" :src="user?.avatarUrl" alt=""/>
-  </van-cell>
+  <div class="centered-avatar">
+  <van-image
+      round
+      width="5rem"
+      height="5rem"
+      :src="user?.avatarUrl"
+  />
+  </div>
   <van-cell title="用户名" :value="user?.username"/>
   <van-cell title="修改个人信息" is-link to="/user/update" />
   <van-cell title="查看我管理的队伍" is-link to="/user/team/captain" />
   <van-cell title="查看我加入的队伍" is-link to="/user/team/join" />
-  <van-button class="quit-login" block color="#ee0a24" @click="logout">退出登录</van-button>
+  <van-button class="user-logout" block color="#ee0a24" @click="logout">退出登录</van-button>
 </template>
 
 <style scoped>
-.quit-login {
+.user-logout {
   margin-top: 10px;
+}
+
+.centered-avatar {
+  display: flex;
+  justify-content: center; /* 横向居中 */
+  margin-top: 1rem;
+  margin-bottom: 2rem; /* 添加底部距离 */
 }
 </style>
