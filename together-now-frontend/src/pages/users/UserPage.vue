@@ -15,9 +15,6 @@ const route = useRoute();
 
 const logout = async () => {
   const res = await myAxios.post('/user/logout');
-  console.log(res);
-  console.log(res.data);
-  console.log(res.code);
   if (res.code === 20000 && res.data) {
     showSuccessToast('退出登录');
     window.location.href = route.query?.refirect as string ?? '/';

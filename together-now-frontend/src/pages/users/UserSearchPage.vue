@@ -21,6 +21,28 @@ const originTagList = [
     ],
   },
   {
+    text: '生活',
+    children: [
+      {text: '种花', id: '种花'},
+      {text: '美甲', id: '美甲'},
+      {text: '美发', id: '美发'},
+      {text: '滑雪', id: '滑雪'},
+      {text: '火锅', id: '火锅'},
+      {text: '做饭', id: '做饭'},
+    ],
+  },
+  {
+    text: '心情',
+    children: [
+      {text: '开心', id: '开心'},
+      {text: '兴奋', id: '兴奋'},
+      {text: '幸福', id: '幸福'},
+      {text: '平淡', id: '平淡'},
+      {text: 'emo中', id: 'emo中'},
+      {text: '勿扰', id: '勿扰'},
+    ],
+  },
+  {
     text: '学习方向',
     children: [
       {text: '前端开发', id: '前端开发'},
@@ -65,14 +87,18 @@ let tagList = ref(originTagList);
  * 搜索过滤
  * @param val
  */
+
 const onSearch = (val) => {
-  tagList.value = originTagList.map(parentTag => {
-    const tempChildren = [...parentTag.children];
-    const tempParentTag = {...parentTag};
-    tempParentTag.children = tempChildren.filter(item => item.text.includes(searchText.value));
-    return tempParentTag;
-  })
+  if (!val.trim()) {
+    tagList.value = originTagList; // 如果搜索框为空，则重置列表
+  } else {
+    tagList.value = originTagList.map(parentTag => {
+      const filteredChildren = parentTag.children.filter(item => item.text.includes(val));
+      return { ...parentTag, children: filteredChildren };
+    }).filter(parentTag => parentTag.children.length > 0); // 移除没有子项的父标签
+  }
 }
+
 
 const onCancel = () => {
   searchText.value = '';
