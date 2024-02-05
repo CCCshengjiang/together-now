@@ -10,6 +10,7 @@ import TeamUpdatePage from "../pages/teams/TeamUpdatePage.vue";
 import UserPage from "../pages/users/UserPage.vue";
 import UserTeamJoinPage from "../pages/teams/UserTeamJoinPage.vue";
 import UserTeamCaptainPage from "../pages/teams/UserTeamCaptainPage.vue";
+import UserRegisterPage from "../pages/users/UserRegisterPage.vue";
 
 // 定义一些路由
 // 每个路由都需要映射到一个组件。
@@ -22,6 +23,7 @@ const routes = [
     { path: '/user/edit', title: '编辑信息', component: UserEditPages },
     { path: '/user/list', title: '搜索结果', component: SearchUsers },
     { path: '/user/login', title: '用户登录', component: UserLoginPage },
+    { path: '/user/register', title: '用户注册', component: UserRegisterPage },
     { path: '/user/team/join', title: '加入的队伍', component: UserTeamJoinPage },
     { path: '/user/team/captain', title: '管理的队伍', component: UserTeamCaptainPage },
     { path: '/team', title: '组队界面', component: TeamPage },

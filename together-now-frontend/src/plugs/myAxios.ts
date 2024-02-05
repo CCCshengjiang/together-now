@@ -8,8 +8,6 @@ const myAxios: AxiosInstance = axios.create({
 
 myAxios.defaults.withCredentials = true; // 允许携带cookie
 
-
-
 // Add a request interceptor
 myAxios.interceptors.request.use(function (config) {
     // Do something before request is sent
