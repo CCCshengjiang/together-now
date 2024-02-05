@@ -88,6 +88,21 @@ const doDisbandTeam = async (id: number) => {
   }
 }
 
+// 假设team是一个响应式引用
+const teamTime = ref({
+  expireTime: '2026-01-12T16:00:00.000+00:00',
+  createTime: '2024-02-05T12:00:00.000+00:00'
+});
+
+// 定义一个格式化日期时间的方法，只包含年月日
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  const year = date.getFullYear(); // 获取年份
+  const month = date.getMonth() + 1; // 获取月份，月份从0开始所以+1
+  const day = date.getDate(); // 获取日期
+  return `${year}年${month}月${day}日`;
+}
+
 </script>
 
 <template>
@@ -110,13 +125,13 @@ const doDisbandTeam = async (id: number) => {
     </template>
     <template #bottom>
       <div>
-        {{ '最大人数' + team.maxNum }}
+        {{ '最大人数: ' + team.maxNum }}
       </div>
       <div>
-        {{ '过期时间' + team.expireTime }}
+        创建时间：{{ formatDate(teamTime.createTime) }}
       </div>
       <div>
-        {{ '创建时间' + team.createTime }}
+        过期时间：{{ formatDate(teamTime.expireTime) }}
       </div>
     </template>
     <template #footer>
