@@ -8,20 +8,21 @@ create table user
 (
     id            bigint auto_increment comment 'id'
         primary key,
-    username      varchar(256)                       null comment '用户名',
+    user_password varchar(512)                       null comment '密码',
     avatar_url    varchar(1024)                      null comment '头像',
     gender        tinyint                            null comment '性别',
     user_account  varchar(512)                       null comment '账号',
-    user_password varchar(512)                       null comment '密码',
-    phone         varchar(128)                       null comment '电话',
+    id_code       varchar(512)                       null comment '编号',
+    user_profile  varchar(512)                       null comment '自我介绍',
     email         varchar(512)                       null comment '邮箱',
     user_status   int      default 0                 null comment '状态',
-    create_time   datetime default CURRENT_TIMESTAMP null comment '创建时间',
-    update_time   datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间',
+    tags          varchar(1024)                      null comment '用户标签 JSON',
+    phone         varchar(128)                       null comment '电话',
     is_delete     tinyint  default 0                 null comment '是否删除',
     user_role     int      default 0                 not null comment '用户角色，0-普通用户，1-管理员',
-    id_code       varchar(512)                       null comment '编号',
-    tags          varchar(1024)                      null comment '用户标签'
+    username      varchar(256)                       null comment '用户名',
+    update_time   datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间',
+    create_time   datetime default CURRENT_TIMESTAMP null comment '创建时间'
 )
     comment '用户';
 
@@ -45,8 +46,8 @@ create table team
     comment '队伍表';
 
 # 创建用户-队伍关系表表
-drop table if exists team;
-create table team
+drop table if exists user_team;
+create table user_team
 (
     id          bigint auto_increment comment 'id'
         primary key,

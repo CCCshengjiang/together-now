@@ -14,7 +14,6 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import static com.wen.togethernow.common.BaseCode.*;
 
@@ -26,6 +25,7 @@ import static com.wen.togethernow.common.BaseCode.*;
 @RestController
 @RequestMapping("/user")
 @CrossOrigin(origins = { "http://localhost:5173/" }, allowCredentials = "true")
+// @CrossOrigin(origins = { "https://www.cwblue.top/" }, allowCredentials = "true")
 public class UserController {
 
     @Resource

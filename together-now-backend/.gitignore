@@ -19,6 +19,9 @@ target/
 *.iml
 *.ipr
 
+### product file
+application-prod.yml
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/

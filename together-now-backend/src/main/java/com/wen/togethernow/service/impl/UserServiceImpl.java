@@ -367,7 +367,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 如果缓存中有，就从缓存中拿数据
         User currentUser = getCurrentUser(request);
         Long currentUserId = currentUser.getId();
-        String redisKey = String.format("togethernow:user:recommend:%s", currentUserId);
+        int pageNum = pageRequest.getPageNum();
+        String redisKey = String.format("togethernow:user:recommend:%s", pageNum);
         Page<User> userPage = (Page<User>) redisTemplate.opsForValue().get(redisKey);
         if (userPage != null) {
             return getSafetyUser(userPage);
@@ -375,7 +376,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 缓存没有就查询数据库
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.ne("id", currentUserId);
-        userPage = userMapper.selectPage(new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize()), queryWrapper);
+        userPage = userMapper.selectPage(new Page<>(pageNum, pageRequest.getPageSize()), queryWrapper);
         // 将查询到的数据写到缓存，设置过期时间为5min
         try {
             redisTemplate.opsForValue().set(redisKey, userPage, 5, TimeUnit.MINUTES);

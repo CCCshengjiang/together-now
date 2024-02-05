@@ -42,7 +42,7 @@ springdoc:
 # knife4j的增强配置，不需要增强可以不配
 knife4j:
   # 开启生产环境屏蔽(线上环境的时候再开启)
-  production: false
+  production: true
   # 开启增强配置
   enable: true
   setting:
