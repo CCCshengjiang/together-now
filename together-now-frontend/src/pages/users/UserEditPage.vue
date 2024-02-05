@@ -19,12 +19,15 @@ const onSubmit = async () => {
     showFailToast('当前用户未登录');
     return;
   }
-  console.log('currentUser', currentUser)
+  if (editUser.value.editKey === 'gender') {
+    editUser.value.currentValue = editUser.value.currentValue === '男' ? '1' : '0';
+  }
+  //console.log('currentUser', currentUser)
   const res = await myAxios.post('/user/update', {
     'id':currentUser.id,
     [editUser.value.editKey as string]: editUser.value.currentValue,
   });
-  console.log('更新请求', res);
+  //console.log('更新请求', res);
   if (res.code === 20000 && res.data > 0) {
     showSuccessToast('更新成功');
     router.back();

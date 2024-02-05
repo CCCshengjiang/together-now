@@ -20,6 +20,21 @@ onMounted(async ()=> {
   user.value = await getCurrentUser();
 })
 
+function formatDate(dateString: string) {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = padZero(date.getMonth() + 1);
+  const day = padZero(date.getDate());
+  const hour = padZero(date.getHours());
+  const minute = padZero(date.getMinutes());
+  const second = padZero(date.getSeconds());
+  return `${year}年${month}月${day}日 ${hour}:${minute}:${second}`;
+}
+
+function padZero(num: number) {
+  return num.toString().padStart(2, '0');
+}
+
 </script>
 
 <template>
@@ -30,10 +45,10 @@ onMounted(async ()=> {
     </van-cell>
     <van-cell title="用户名" is-link to="/user/edit" :value="user.username" @click="toEdit('username', '用户名', user.username)" />
     <van-cell title="账号" is-link to="/user/edit" :value="user.userAccount" @click="toEdit('userAccount', '账号', user.userAccount)" />
-    <van-cell title="性别" is-link to="/user/edit" :value="user.gender" @click="toEdit('gender', '性别', user.gender)" />
+    <van-cell title="性别" is-link to="/user/edit" :value="user.gender === 1 ? '男' : '女'" @click="toEdit('gender', '性别', user.gender === 1 ? '男' : '女')" />
     <van-cell title="电话" is-link to="/user/edit" :value="user.phone" @click="toEdit('phone', '电话', user.phone)" />
     <van-cell title="邮箱" is-link to="/user/edit" :value="user.email" @click="toEdit('email', '邮箱', user.email)" />
-    <van-cell title="创建" :value="user.createTime" />
+    <van-cell title="创建时间" :value="formatDate(user.createTime)" />
   </div>
 
 

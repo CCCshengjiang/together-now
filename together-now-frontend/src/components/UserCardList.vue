@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {UserType} from "../models/user";
+import {showDialog} from "vant";
 
 interface UserCardListProps {
   loading: boolean;
@@ -12,6 +13,12 @@ const props = withDefaults(defineProps<UserCardListProps>(), {
       teamList: [] as UserType[],
     }
 );
+
+const showEmail = (email: string) => showDialog({
+  title: 'Email',
+  message: email ? email : '该用户未设置Email',
+});
+
 </script>
 
 <template>
@@ -27,7 +34,7 @@ const props = withDefaults(defineProps<UserCardListProps>(), {
         </van-tag>
       </template>
       <template #footer>
-        <van-button size="mini">联系我</van-button>
+        <van-button size="mini" @click="showEmail(user.email)">联系我</van-button>
       </template>
     </van-card>
   </van-skeleton>

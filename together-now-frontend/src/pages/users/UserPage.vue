@@ -34,7 +34,7 @@ const logout = async () => {
       :src="user?.avatarUrl"
   />
   </div>
-  <van-cell title="用户名" :value="user?.username"/>
+  <van-divider class="bold-text">{{ user?.username }}</van-divider>
   <van-cell title="修改个人信息" is-link to="/user/update" />
   <van-cell title="查看我管理的队伍" is-link to="/user/team/captain" />
   <van-cell title="查看我加入的队伍" is-link to="/user/team/join" />
@@ -42,6 +42,9 @@ const logout = async () => {
 </template>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
+
 .user-logout {
   margin-top: 10px;
 }
@@ -50,6 +53,13 @@ const logout = async () => {
   display: flex;
   justify-content: center; /* 横向居中 */
   margin-top: 1rem;
-  margin-bottom: 2rem; /* 添加底部距离 */
+  margin-bottom: 1rem; /* 添加底部距离 */
+}
+
+.bold-text {
+  font-weight: bold; /* 使文本变粗 */
+  color: #000000; /* 设置文本颜色为纯黑色 */
+  font-family: 'Raleway ', cursive; /* 应用书法体字体 */
+  font-size: 18px; /* 设置字体大小为 24 像素 */
 }
 </style>
