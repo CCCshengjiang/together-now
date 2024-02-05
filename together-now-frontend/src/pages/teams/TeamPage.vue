@@ -42,7 +42,7 @@ const onSearch = (val) => {
 <template>
   <div id="teamPage">
     <van-search v-model="searchText" placeholder="搜索队伍" @search="onSearch"/>
-    <van-button type="primary" @click="doAddTeam">创建队伍</van-button>
+    <van-button class="add-button" type="primary" icon="plus" @click="doAddTeam"/>
     <team-card-list :team-list="teamList"/>
     <van-empty image="search" v-if="!teamList || teamList.length === 0" description="暂无符合要求队伍" />
   </div>
@@ -50,5 +50,13 @@ const onSearch = (val) => {
 </template>
 
 <style scoped>
-
+.add-button {
+  position: fixed;
+  bottom: 60px;
+  width: 50px;
+  right: 12px;
+  height: 50px;
+  border-radius: 50%;
+  z-index: 9999;
+}
 </style>
