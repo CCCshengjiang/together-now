@@ -291,12 +291,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 先查询缓存
         String redisKey = "togethernow:all:users";
         List<User> users = (List<User>) redisTemplate.opsForValue().get(redisKey);
+        // 缓存中没有，写入缓存
         if (users == null) {
-            User currentUser = this.getCurrentUser(request);
-            QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-            queryWrapper.ne("id", currentUser.getId());
-            List<User> originUsers = userMapper.selectList(queryWrapper);
+            List<User> originUsers = this.list();
+            // 用户信息脱敏 + 写入缓存
             users =  safetyUsersToRedis(originUsers, redisKey);
+            removeCurrentUser(users, this.getCurrentUser(request));
         }
         // 根据标签查询
         List<User> safetyUsers = new ArrayList<>();
@@ -374,11 +374,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             return getPageUsers(pageSize, pageNum, userPage);
         }
         // 缓存没有：从数据库中取数据写入缓存，最多取前1000条数据
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.ne("id", currentUser.getId());
-        List<User> users = userMapper.selectList(queryWrapper).stream().limit(1000).toList();
+        List<User> users = this.list().stream().limit(1000).toList();
         // 用户信息脱敏，并写入redis
         List<User> safetyUsers = safetyUsersToRedis(users, redisKey);
+        // 移除当前用户
+        removeCurrentUser(safetyUsers, currentUser);
         // 6.根据分页信息返回脱敏的用户列表
         return getPageUsers(pageSize, pageNum, safetyUsers);
     }
@@ -410,17 +410,36 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (userPage != null) {
             return getPageUsers(pageSize, pageNum, getSafetyUser(userPage));
         }
-        // 2.得到当前用户的标签信息
+        // 2.根据相似度匹配算法得到符合要求的脱敏用户列表
+        List<User> safetyUsers = getMatchUsers(currentUser);
+        // 3.写入缓存，设置过期时间为5min
+        try {
+            redisTemplate.opsForValue().set(redisKey, safetyUsers, 5, TimeUnit.MINUTES);
+        } catch (Exception e) {
+            log.error("Redis set key error", e);
+        }
+        return getPageUsers(pageSize, pageNum, safetyUsers);
+    }
+
+    /**
+     * 相似度匹配用户
+     *
+     * @param currentUser 当前用户
+     * @return 脱敏的用户列表
+     */
+    @Override
+    public List<User> getMatchUsers(User currentUser) {
+        // 1.得到当前用户的标签信息
         String curUserTags = currentUser.getTags();
         Gson gson = new Gson();
         List<String> curTags = gson.fromJson(curUserTags, new TypeToken<List<String>>() {
         }.getType());
-        // 3.得到所有用户
+        // 2.得到所有用户
         QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
         userQueryWrapper.isNotNull("tags");
         userQueryWrapper.select("id", "tags");
         List<User> userList = this.list(userQueryWrapper);
-        // 4.每个用户都和当前用户进行相似度匹配，存储匹配结果
+        // 3.每个用户都和当前用户进行相似度匹配，存储匹配结果
         HashMap<Long, Integer> getMatchUsers = new HashMap<>();
         for (User user : userList) {
             String userTags = user.getTags();
@@ -434,26 +453,36 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             int distance = AlgorithmUtils.editDistance(curTags, tags);
             getMatchUsers.put(user.getId(), distance);
         }
-        // 5.根据相似度进行排序
+        // 4.根据相似度进行排序
         List<Map.Entry<Long, Integer>> sortedMatchUsers = getMatchUsers.entrySet()
                 .stream()
                 .sorted(Map.Entry.comparingByValue())
                 .limit(1000)
                 .toList();
-        // 6.根据分页信息返回脱敏的用户列表
+        // 5.根据分页信息返回脱敏的用户列表
         List<User> safetyUsers = new ArrayList<>();
         for (Map.Entry<Long, Integer> sortedMatchUser : sortedMatchUsers) {
             Long userId = sortedMatchUser.getKey();
             safetyUsers.add(this.getSafetyUser(this.getById(userId)));
         }
-        // 7.写入缓存，设置过期时间为5min
-        try {
-            redisTemplate.opsForValue().set(redisKey, safetyUsers, 5, TimeUnit.MINUTES);
-        } catch (Exception e) {
-            log.error("Redis set key error", e);
-        }
+        return safetyUsers;
+    }
 
-        return getPageUsers(pageSize, pageNum, safetyUsers);
+    /**
+     * 使用迭代器从用户列表中移除当前用户
+     *
+     * @param safetyUsers 脱敏的用户列表
+     * @param currentUser 当前用户
+     */
+    private void removeCurrentUser(List<User> safetyUsers, User currentUser) {
+        Iterator<User> iterator = safetyUsers.iterator();
+        while (iterator.hasNext()) {
+            User safetyUser = iterator.next();
+            if (Objects.equals(safetyUser.getId(), currentUser.getId())) {
+                iterator.remove();
+                break;
+            }
+        }
     }
 
     /**

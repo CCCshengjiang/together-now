@@ -136,4 +136,12 @@ public interface UserService extends IService<User> {
      * @return 脱敏的用户列表 + 用户总量
      */
     PageUsersVO matchUsers(PageRequest pageRequest, HttpServletRequest request);
+
+    /**
+     * 相似度匹配算法推荐用户
+     *
+     * @param currentUser 当前用户
+     * @return 脱敏的用户列表
+     */
+    List<User> getMatchUsers(User currentUser);
 }

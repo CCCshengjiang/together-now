@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 /**
  * 缓存预热任务
@@ -33,33 +35,68 @@ public class PreCacheJob {
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
-    // TODO 动态设置重点用户
-    private final List<Long> mainUsersId = List.of(2L);
+    /**
+     * 主要用户的 id 集合
+     */
+    private final List<Long> mainUsersId = LongStream.rangeClosed(0, 30)
+            .boxed()
+            .toList();
 
     /**
      * 每天凌晨两点执行，预热推荐用户
      */
     @Scheduled(cron = "0 0 2 * * *")
     public void doPreCacheRecommend() {
-        RLock lock = redissonClient.getLock("together:precachejob:docache:lock");
+        RLock lock = redissonClient.getLock("together:preCacheJob:doPreCacheRecommend:lock");
         try {
-            // 只抢一次抢不到就放弃，锁的过期时间：1min
-            if (lock.tryLock(0, 60000, TimeUnit.MILLISECONDS)) {
-                for (Long userId : mainUsersId) {
-                    QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-                    Page<User> userPage = userService.page(new Page<>(1, 20), queryWrapper);
-                    String redisKey = String.format("togethernow:user:recommend:%s", userId);
+            // 只抢一次抢不到就放弃，锁的过期时间：5min
+            if (lock.tryLock(0, 5, TimeUnit.MINUTES)) {
+                List<User> userList = userService.list();
+                String redisKey = "togethernow:user:recommend";
+                // 将查询到的数据写到缓存，设置过期时间为：24h
+                try {
+                    redisTemplate.opsForValue().set(redisKey, userList, 24, TimeUnit.HOURS);
+                } catch (Exception e) {
+                    log.error("Redis set key error", e);
+                }
+            }
+        } catch (InterruptedException e) {
+            log.error("doPreCacheRecommend error", e);
+        } finally {
+            // 只能释放自己加的锁
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+    }
 
-                    // 将查询到的数据写到缓存，设置过期时间为：2h
+    /**
+     * 每天早上八点执行，预热用户匹配
+     */
+    @Scheduled(cron = "0 0 8 * * *")
+    public void doPreCacheMatch() {
+        RLock lock = redissonClient.getLock("together:preCacheJob:doPreCacheMatch:lock");
+        try {
+            // 只抢一次抢不到就放弃，锁的过期时间：5min
+            if (lock.tryLock(0, 5, TimeUnit.MINUTES)) {
+                for (Long userId : mainUsersId) {
+                    String redisKey = String.format("togethernow:user:match:%s", userId);
+                    User user = userService.getById(userId);
+                    // 用户注销或者没有用户
+                    if (user == null) {
+                        continue;
+                    }
+                    List<User> matchUsers = userService.getMatchUsers(user);
+                    // 将查询到的数据写到缓存，设置过期时间为：12h
                     try {
-                        redisTemplate.opsForValue().set(redisKey, userPage, 2, TimeUnit.HOURS);
+                        redisTemplate.opsForValue().set(redisKey, matchUsers, 12, TimeUnit.HOURS);
                     } catch (Exception e) {
                         log.error("Redis set key error", e);
                     }
                 }
             }
         } catch (InterruptedException e) {
-            log.error("doPreCacheRecommend error", e);
+            log.error("doPreCacheMatch error", e);
         } finally {
             // 只能释放自己加的锁
             if (lock.isHeldByCurrentThread()) {
