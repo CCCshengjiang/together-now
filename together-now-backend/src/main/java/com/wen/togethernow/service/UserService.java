@@ -104,6 +104,14 @@ public interface UserService extends IService<User> {
     /**
      * 用户脱敏的业务层接口
      *
+     * @param userList 用户列表
+     * @return 脱敏的用户信息
+     */
+    List<User> getSafetyUser(List<User> userList);
+
+    /**
+     * 用户脱敏的业务层接口
+     *
      * @param originUser 原始的用户信息
      * @return 脱敏的用户
      */
@@ -121,9 +129,9 @@ public interface UserService extends IService<User> {
     /**
      * 用户匹配的业务层接口
      *
-     * @param num 需要匹配的用户数量
+     * @param pageRequest 分页参数信息
      * @param request 前端请求
      * @return 脱敏的用户列表
      */
-    List<User> matchUsers(Long num, HttpServletRequest request);
+    List<User> matchUsers(PageRequest pageRequest, HttpServletRequest request);
 }

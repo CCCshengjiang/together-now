@@ -187,16 +187,16 @@ public class UserController {
     /**
      * 用户匹配
      *
-     * @param num 匹配的用户的数量
+     * @param pageRequest 分页参数信息
      * @param request 前端请求
      * @return 脱敏的用户列表
      */
     @GetMapping("/match")
-    public BaseResponse<List<User>> matchUsers(@RequestParam Long num, HttpServletRequest request) {
-        if (num == null || request == null) {
+    public BaseResponse<List<User>> matchUsers(PageRequest pageRequest, HttpServletRequest request) {
+        if (pageRequest == null || request == null) {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
-        List<User> safetyUsers = userService.matchUsers(num, request);
+        List<User> safetyUsers = userService.matchUsers(pageRequest, request);
         return ReturnUtil.success(safetyUsers);
     }
 }
