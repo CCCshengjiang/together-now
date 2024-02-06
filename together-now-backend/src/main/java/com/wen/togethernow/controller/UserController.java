@@ -9,6 +9,7 @@ import com.wen.togethernow.model.request.user.UserLoginRequest;
 import com.wen.togethernow.model.request.user.UserRegisterRequest;
 import com.wen.togethernow.model.request.user.UserSearchRequest;
 import com.wen.togethernow.model.request.user.UserUpdateRequest;
+import com.wen.togethernow.model.vo.PageUsersVO;
 import com.wen.togethernow.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -113,16 +114,17 @@ public class UserController {
      * 根据标签查询用户
      *
      * @param tagNameList 标签列表
+     * @param request 前端请求
      * @return 脱敏的用户列表
      */
     @GetMapping("/search/tags")
-    public BaseResponse<List<User>> userSearchByTags(@RequestParam(required = false) List<String> tagNameList) {
+    public BaseResponse<List<User>> userSearchByTags(@RequestParam(required = false) List<String> tagNameList, HttpServletRequest request) {
         // 判空
         if (tagNameList.isEmpty()) {
             throw new BusinessException(PARAMS_NULL_ERROR, "标签为空");
         }
         // 根据标签查询用户
-        List<User> safetyUsers = userService.userSearchByTags(tagNameList);
+        List<User> safetyUsers = userService.userSearchByTags(tagNameList, request);
         return ReturnUtil.success(safetyUsers);
     }
 
@@ -173,15 +175,15 @@ public class UserController {
      * 用户推荐
      *
      * @param request 前端请求
-     * @return 返回分页用户列表
+     * @return 返回分页用户列表 + 用户总量
      */
     @GetMapping("/recommend")
-    public BaseResponse<List<User>> recommendUsers(PageRequest pageRequest, HttpServletRequest request) {
+    public BaseResponse<PageUsersVO> recommendUsers(PageRequest pageRequest, HttpServletRequest request) {
         if (request == null) {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
-        List<User> safetyUsers = userService.recommendUsers(pageRequest, request);
-        return ReturnUtil.success(safetyUsers);
+        PageUsersVO pageUsersVO = userService.recommendUsers(pageRequest, request);
+        return ReturnUtil.success(pageUsersVO);
     }
 
     /**
@@ -189,14 +191,14 @@ public class UserController {
      *
      * @param pageRequest 分页参数信息
      * @param request 前端请求
-     * @return 脱敏的用户列表
+     * @return 脱敏的用户列表 + 用户总量
      */
     @GetMapping("/match")
-    public BaseResponse<List<User>> matchUsers(PageRequest pageRequest, HttpServletRequest request) {
+    public BaseResponse<PageUsersVO> matchUsers(PageRequest pageRequest, HttpServletRequest request) {
         if (pageRequest == null || request == null) {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
-        List<User> safetyUsers = userService.matchUsers(pageRequest, request);
-        return ReturnUtil.success(safetyUsers);
+        PageUsersVO pageUsersVO = userService.matchUsers(pageRequest, request);
+        return ReturnUtil.success(pageUsersVO);
     }
 }

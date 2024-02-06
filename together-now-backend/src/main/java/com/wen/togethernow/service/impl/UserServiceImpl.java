@@ -13,6 +13,7 @@ import com.wen.togethernow.model.request.user.UserLoginRequest;
 import com.wen.togethernow.model.request.user.UserRegisterRequest;
 import com.wen.togethernow.model.request.user.UserSearchRequest;
 import com.wen.togethernow.model.request.user.UserUpdateRequest;
+import com.wen.togethernow.model.vo.PageUsersVO;
 import com.wen.togethernow.model.vo.SafetyUserVO;
 import com.wen.togethernow.service.UserService;
 import com.wen.togethernow.mapper.UserMapper;
@@ -279,16 +280,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * 使用缓存根据标签查询用户
      *
      * @param tagNameList 标签名
+     * @param request 前端请求
      * @return 查询到的脱敏用户列表
      */
     @Override
-    public List<User> userSearchByTags(List<String> tagNameList) {
+    public List<User> userSearchByTags(List<String> tagNameList, HttpServletRequest request) {
         if (tagNameList.isEmpty()) {
             throw new BusinessException(PARAMS_NULL_ERROR, "标签为空");
         }
-        // 先查询所有用户
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        List<User> users = userMapper.selectList(queryWrapper);
+        // 先查询缓存
+        String redisKey = "togethernow:all:users";
+        List<User> users = (List<User>) redisTemplate.opsForValue().get(redisKey);
+        if (users == null) {
+            User currentUser = this.getCurrentUser(request);
+            QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+            queryWrapper.ne("id", currentUser.getId());
+            List<User> originUsers = userMapper.selectList(queryWrapper);
+            users =  safetyUsersToRedis(originUsers, redisKey);
+        }
         // 根据标签查询
         List<User> safetyUsers = new ArrayList<>();
         Gson gson = new Gson();
@@ -299,10 +308,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             }.getType());
             // 判断是否为空
             tagNameSet = Optional.ofNullable(tagNameSet).orElse(new HashSet<>());
-            // 用户信息脱敏
+            // 保存标签匹配的用户
             for (String tagStr : tagNameList) {
                 if (tagNameSet.contains(tagStr)) {
-                    safetyUsers.add(getSafetyUser(user));
+                    safetyUsers.add(user);
                     break;
                 }
             }
@@ -340,68 +349,49 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     /**
-     * 用户脱敏的实现
-     *
-     * @param userPageList 分页的用户列表
-     * @return 脱敏的用户分页列表
-     */
-    @Override
-    public List<User> getSafetyUser(Page<User> userPageList) {
-        List<User> userListRecords = userPageList.getRecords();
-        return getSafetyUser(userListRecords);
-    }
-
-    @Override
-    public List<User> getSafetyUser(List<User> userList) {
-        List<User> safetyUserList = new ArrayList<>();
-        for (User userListRecord : userList) {
-            safetyUserList.add(getSafetyUser(userListRecord));
-        }
-        return safetyUserList;
-    }
-
-    /**
      * 用户推荐的业务实现
      *
      * @param pageRequest 接收前端的分页参数
      * @param request     前端http请求
-     * @return 返回脱敏的用户列表
+     * @return 返回脱敏的用户列表 + 用户总量
      */
     @Override
-    public List<User> recommendUsers(PageRequest pageRequest, HttpServletRequest request) {
-        // 如果缓存中有，就从缓存中拿数据
+    public PageUsersVO recommendUsers(PageRequest pageRequest, HttpServletRequest request) {
+        if (pageRequest == null || request == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
+        // 参数校验
         User currentUser = getCurrentUser(request);
-        Long currentUserId = currentUser.getId();
         int pageNum = pageRequest.getPageNum();
+        int pageSize = pageRequest.getPageSize();
+        if (pageNum == 0 || pageSize == 0) {
+            throw new BusinessException(PARAMS_ERROR);
+        }
         // 只要有一个用户查了，其他用户直接从缓存中取出就好
         String redisKey = "togethernow:user:recommend";
-        Page<User> userPage = (Page<User>) redisTemplate.opsForValue().get(redisKey);
+        List<User> userPage = (List<User>) redisTemplate.opsForValue().get(redisKey);
         if (userPage != null) {
-            return getSafetyUser(userPage);
+            return getPageUsers(pageSize, pageNum, userPage);
         }
-        // 缓存没有就查询数据库
+        // 缓存没有：从数据库中取数据写入缓存，最多取前1000条数据
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.ne("id", currentUserId);
-        userPage = userMapper.selectPage(new Page<>(pageNum, pageRequest.getPageSize()), queryWrapper);
-        // 将查询到的数据写到缓存，设置过期时间为5min
-        try {
-            redisTemplate.opsForValue().set(redisKey, userPage, 1440, TimeUnit.MINUTES);
-        } catch (Exception e) {
-            log.error("Redis set key error", e);
-        }
-        // 返回脱敏的用户信息
-        return getSafetyUser(userPage);
+        queryWrapper.ne("id", currentUser.getId());
+        List<User> users = userMapper.selectList(queryWrapper).stream().limit(1000).toList();
+        // 用户信息脱敏，并写入redis
+        List<User> safetyUsers = safetyUsersToRedis(users, redisKey);
+        // 6.根据分页信息返回脱敏的用户列表
+        return getPageUsers(pageSize, pageNum, safetyUsers);
     }
 
     /**
      * 用户匹配的业务层实现
      *
      * @param pageRequest 分页参数信息
-     * @param request 前端请求
-     * @return 脱敏的用户列表
+     * @param request     前端请求
+     * @return 脱敏的用户列表 + 用户总量
      */
     @Override
-    public List<User> matchUsers(PageRequest pageRequest, HttpServletRequest request) {
+    public PageUsersVO matchUsers(PageRequest pageRequest, HttpServletRequest request) {
         // 参数校验
         if (pageRequest == null || request == null) {
             throw new BusinessException(PARAMS_NULL_ERROR);
@@ -410,7 +400,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         int pageSize = pageRequest.getPageSize();
         // 如果需要的用户数量为0，直接返回空列表
         if (pageNum == 0 || pageSize == 0) {
-            return new ArrayList<>();
+            throw new BusinessException(PARAMS_ERROR);
         }
         // 1.如果缓存中有，就从缓存中拿数据
         User currentUser = this.getCurrentUser(request);
@@ -448,11 +438,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         List<Map.Entry<Long, Integer>> sortedMatchUsers = getMatchUsers.entrySet()
                 .stream()
                 .sorted(Map.Entry.comparingByValue())
+                .limit(1000)
                 .toList();
         // 6.根据分页信息返回脱敏的用户列表
         List<User> safetyUsers = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
-            Map.Entry<Long, Integer> sortedMatchUser = sortedMatchUsers.get(i);
+        for (Map.Entry<Long, Integer> sortedMatchUser : sortedMatchUsers) {
             Long userId = sortedMatchUser.getKey();
             safetyUsers.add(this.getSafetyUser(this.getById(userId)));
         }
@@ -466,16 +456,76 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return getPageUsers(pageSize, pageNum, safetyUsers);
     }
 
-    private static List<User> getPageUsers(int pageSize, int pageNum, List<User> safetyUsers) {
+    /**
+     * 将用户信息脱敏并写入redis
+     *
+     * @param originUsers 原始用户列表
+     * @param redisKey redis的key
+     * @return 脱敏的用户列表
+     */
+    private List<User> safetyUsersToRedis(List<User> originUsers, String redisKey) {
+        List<User> safetyUsers = new ArrayList<>();
+        for (User user : originUsers) {
+            safetyUsers.add(this.getSafetyUser(user));
+        }
+        // 将查询到的数据写到缓存，设置过期时间为12h
+        try {
+            redisTemplate.opsForValue().set(redisKey, safetyUsers, 1440, TimeUnit.MINUTES);
+        } catch (Exception e) {
+            log.error("Redis set key error", e);
+        }
+        return safetyUsers;
+    }
+
+    /**
+     * 返回分页结果
+     *
+     * @param pageSize 页数大小
+     * @param pageNum 页数
+     * @param safetyUsers 脱敏的用户列表
+     * @return 脱敏的用户信息 + 用户总量
+     */
+    private static PageUsersVO getPageUsers(int pageSize, int pageNum, List<User> safetyUsers) {
         // 计算索引
         int start = pageSize * (pageNum - 1);
         int end = start + pageSize;
+        int total = safetyUsers.size();
         List<User> res = new ArrayList<>();
-        for (int i = start; i < end; i++) {
+        for (int i = start;i < total && i < end; i++) {
             User user = safetyUsers.get(i);
             res.add(user);
         }
-        return res;
+        PageUsersVO pageUsersVO = new PageUsersVO();
+        pageUsersVO.setSafetyUsers(res);
+        pageUsersVO.setTotalUsers(total);
+        return pageUsersVO;
+    }
+
+    /**
+     * 用户脱敏的实现
+     *
+     * @param userPageList 分页的用户列表
+     * @return 脱敏的用户分页列表
+     */
+    @Override
+    public List<User> getSafetyUser(Page<User> userPageList) {
+        List<User> userListRecords = userPageList.getRecords();
+        return getSafetyUser(userListRecords);
+    }
+
+    /**
+     * 用户脱敏的实现
+     *
+     * @param userList 用户列表
+     * @return 脱敏的用户信息
+     */
+    @Override
+    public List<User> getSafetyUser(List<User> userList) {
+        List<User> safetyUserList = new ArrayList<>();
+        for (User userListRecord : userList) {
+            safetyUserList.add(getSafetyUser(userListRecord));
+        }
+        return safetyUserList;
     }
 
     /**

@@ -8,6 +8,7 @@ import com.wen.togethernow.model.request.user.UserLoginRequest;
 import com.wen.togethernow.model.request.user.UserRegisterRequest;
 import com.wen.togethernow.model.request.user.UserSearchRequest;
 import com.wen.togethernow.model.request.user.UserUpdateRequest;
+import com.wen.togethernow.model.vo.PageUsersVO;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
@@ -80,9 +81,10 @@ public interface UserService extends IService<User> {
      * 根据标签搜索用户接口
      *
      * @param tagNameList 标签名
+     * @param request 前端请求
      * @return 返回脱敏用户列表
      */
-    List<User> userSearchByTags(List<String> tagNameList);
+    List<User> userSearchByTags(List<String> tagNameList, HttpServletRequest request);
 
     /**
      * 修改用户信息的业务接口
@@ -122,16 +124,16 @@ public interface UserService extends IService<User> {
      *
      * @param pageRequest 接收前端的分页参数
      * @param request     前端http请求
-     * @return 返回脱敏的用户信息
+     * @return 返回脱敏的用户信息 + 用户总量
      */
-    List<User> recommendUsers(PageRequest pageRequest, HttpServletRequest request);
+    PageUsersVO recommendUsers(PageRequest pageRequest, HttpServletRequest request);
 
     /**
      * 用户匹配的业务层接口
      *
      * @param pageRequest 分页参数信息
-     * @param request 前端请求
-     * @return 脱敏的用户列表
+     * @param request     前端请求
+     * @return 脱敏的用户列表 + 用户总量
      */
-    List<User> matchUsers(PageRequest pageRequest, HttpServletRequest request);
+    PageUsersVO matchUsers(PageRequest pageRequest, HttpServletRequest request);
 }
