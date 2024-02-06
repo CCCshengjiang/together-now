@@ -95,7 +95,7 @@ const teamTime = ref({
 });
 
 // 定义一个格式化日期时间的方法，只包含年月日
-function formatDate(dateString) {
+function formatDate(dateString: string) {
   const date = new Date(dateString);
   const year = date.getFullYear(); // 获取年份
   const month = date.getMonth() + 1; // 获取月份，月份从0开始所以+1
