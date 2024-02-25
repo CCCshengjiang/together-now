@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, watchEffect} from "vue";
+import {ref, watchEffect, watch} from "vue";
 import myAxios from "../plugs/myAxios.ts"
 import UserCardList from "../components/UserCardList.vue";
 import {UserType} from "../models/user";
@@ -8,20 +8,19 @@ const userList = ref([])
 const isMatchMode = ref<boolean>(false);
 
 const loading = ref(true);
-
-// 分页
 const currentPage = ref(1);
+const totalItems = ref(0);
+const pageSize = ref(5); // 定义每页的大小
 
 
 const loadDate = async () => {
-  let searchUserList;
   loading.value = true;
-
+  let searchUserList;
+  // 根据isMatchMode的值调用不同的API
   if (isMatchMode.value) {
-    // 心动模式
     searchUserList = await myAxios.get('/user/match', {
       params: {
-        pageSize: 5,
+        pageSize: pageSize.value,
         pageNum: currentPage.value,
       }
     })
@@ -33,12 +32,9 @@ const loadDate = async () => {
           console.log('/user/match error', error);
         })
   } else {
-    console.log('currentPage.value', currentPage.value)
-    // 普通模式
-    // Optionally the request above could also be done as
     searchUserList = await myAxios.get('/user/recommend', {
       params: {
-        pageSize: 5,
+        pageSize: pageSize.value,
         pageNum: currentPage.value,
       }
     })
@@ -50,20 +46,28 @@ const loadDate = async () => {
           console.log('/user/recommend error', error);
         })
   }
+
   if (searchUserList) {
-    searchUserList.forEach((user: UserType) => {
+    totalItems.value = searchUserList.totalUsers;
+    searchUserList.safetyUsers.forEach((user: UserType) => {
       if (user.tags) {
         user.tags = JSON.parse(user.tags);
       }
     })
-    userList.value = searchUserList;
+    userList.value = searchUserList.safetyUsers;
   }
   loading.value = false;
 }
 
+// 监听isMatchMode变化
+watch(isMatchMode, () => {
+  currentPage.value = 1; // 切换模式时重置为第一页
+  loadDate(); // 重新加载数据
+});
+
 watchEffect(() => {
   loadDate();
-})
+});
 
 </script>
 
@@ -80,15 +84,23 @@ watchEffect(() => {
 
   <user-card-list :user-list="userList" :loading="loading"/>
 
-  <van-empty image="search" v-if="!userList || userList.length === 0" description="数据为空"/>
+  <van-empty image="search" v-if="!loading && (!userList || userList.length === 0)" description="数据为空"/>
 
   <van-pagination
       v-model="currentPage"
-      :total-items="100"
-      :show-page-size="3"
+      :total-items="totalItems"
+      :items-per-page="pageSize"
+      :show-page-size="5"
       force-ellipses
-  />
-
+  >
+    <template #prev-text>
+      <van-icon name="arrow-left" />
+    </template>
+    <template #next-text>
+      <van-icon name="arrow" />
+    </template>
+    <template #page="{ text }">{{ text }}</template>
+  </van-pagination>
 </template>
 
 <style scoped>

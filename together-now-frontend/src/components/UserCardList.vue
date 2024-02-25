@@ -29,7 +29,7 @@ const showEmail = (email: string) => showDialog({
   <div v-else>
     <!-- 数据加载完成后，显示实际的用户卡片 -->
     <van-card
-        v-for="user in userList"
+        v-for="user in props.userList"
         :key="user.id"
         :desc="user.userProfile"
         :title="`${user.username} (编号：${user.idCode})`"

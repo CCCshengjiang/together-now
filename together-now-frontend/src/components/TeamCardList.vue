@@ -108,7 +108,7 @@ function formatDate(dateString: string) {
 <template>
   <van-card
       v-for="team in props.teamList"
-      :thumb="team.captainUser.avatarUrl"
+      :thumb="team?.captainUser?.avatarUrl"
       :desc="team.teamProfile"
       :title="`${team.teamName}`"
   >
