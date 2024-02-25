@@ -22,7 +22,7 @@ import static com.wen.togethernow.common.BaseCode.*;
 @RestController
 @RequestMapping("/team")
 @CrossOrigin(origins = {"http://localhost:5173/"}, allowCredentials = "true")
-//@CrossOrigin(origins = { "https://www.cwblue.top/" }, allowCredentials = "true")
+// @CrossOrigin(origins = { "https://www.cwblue.top/" }, allowCredentials = "true")
 public class TeamController {
 
     @Resource

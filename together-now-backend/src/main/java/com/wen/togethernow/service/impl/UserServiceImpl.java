@@ -369,14 +369,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         // 只要有一个用户查了，其他用户直接从缓存中取出就好
         String redisKey = "togethernow:user:recommend";
-        List<User> userPage = (List<User>) redisTemplate.opsForValue().get(redisKey);
-        if (userPage != null) {
-            return getPageUsers(pageSize, pageNum, userPage);
+        List<User> safetyUsers = (List<User>) redisTemplate.opsForValue().get(redisKey);
+        if (safetyUsers != null) {
+            // 移除当前用户
+            removeCurrentUser(safetyUsers, currentUser);
+            return getPageUsers(pageSize, pageNum, safetyUsers);
         }
         // 缓存没有：从数据库中取数据写入缓存，最多取前1000条数据
         List<User> users = this.list().stream().limit(1000).toList();
         // 用户信息脱敏，并写入redis
-        List<User> safetyUsers = safetyUsersToRedis(users, redisKey);
+        safetyUsers = safetyUsersToRedis(users, redisKey);
         // 移除当前用户
         removeCurrentUser(safetyUsers, currentUser);
         // 6.根据分页信息返回脱敏的用户列表
