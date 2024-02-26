@@ -13,10 +13,11 @@ const doAddTeam = () => {
   })
 }
 const teamList = ref([]);
-const searchTeam = async (val = '') => {
+const searchTeam = async (val = '', teamStatus = 0) => {
   const res = await myAxios.get("/team/search", {
     params: {
       searchText: val,
+      teamStatus,
     }
   });
   if (res?.code === 20000) {
@@ -37,11 +38,25 @@ const onSearch = (val) => {
   searchTeam(val);
 };
 
+const active = ref('public');
+
+const onChangeTab = (name) => {
+  if (name == 'public') {
+    searchTeam(searchText.value, 0);
+  }else {
+    searchTeam(searchText.value, 2);
+  }
+}
+
 </script>
 
 <template>
   <div id="teamPage">
     <van-search v-model="searchText" placeholder="搜索队伍" @search="onSearch"/>
+    <van-tabs v-model:active="active" @change="onChangeTab">
+      <van-tab title="公开队伍" name="public" />
+      <van-tab title="加密队伍" name="secret"/>
+    </van-tabs>
     <van-button class="add-button" type="primary" icon="plus" @click="doAddTeam"/>
     <team-card-list :team-list="teamList"/>
     <van-empty image="search" v-if="!teamList || teamList.length === 0" description="暂无符合要求队伍" />

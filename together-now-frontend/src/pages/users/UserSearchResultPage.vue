@@ -23,11 +23,11 @@ onMounted(async () => {
     }
   })
       .then(function (response) {
-        console.log('/user/search/tags succeed', response);
+        // console.log('/user/search/tags succeed', response);
         return response?.data;
       })
       .catch(function (error) {
-        console.log('/user/search/tags error', error);
+        // console.log('/user/search/tags error', error);
       });
 
   if (searchUserList && searchUserList.length !== 0) {

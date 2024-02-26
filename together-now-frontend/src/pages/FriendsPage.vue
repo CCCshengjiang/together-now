@@ -25,11 +25,11 @@ const loadDate = async () => {
       }
     })
         .then(function (response) {
-          console.log('/user/match succeed', response);
+          // console.log('/user/match succeed', response);
           return response?.data;
         })
         .catch(function (error) {
-          console.log('/user/match error', error);
+          // console.log('/user/match error', error);
         })
   } else {
     searchUserList = await myAxios.get('/user/recommend', {
@@ -39,11 +39,11 @@ const loadDate = async () => {
       }
     })
         .then(function (response) {
-          console.log('/user/recommend succeed', response);
+          // console.log('/user/recommend succeed', response);
           return response?.data;
         })
         .catch(function (error) {
-          console.log('/user/recommend error', error);
+          // console.log('/user/recommend error', error);
         })
   }
 
