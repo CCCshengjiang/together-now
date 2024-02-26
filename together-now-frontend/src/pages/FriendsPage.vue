@@ -69,16 +69,39 @@ watchEffect(() => {
   loadDate();
 });
 
+const images = [
+  'https://gitee.com/CCCshengjiang/blog-img/raw/master/image/202402060011679.jpg',
+  'https://gitee.com/CCCshengjiang/blog-img/raw/master/image/202402060011340.jpg',
+];
+
 </script>
 
 <template>
+  <van-notice-bar
+      color="#1989fa"
+      background="#ecf9ff"
+      left-icon="volume-o"
+      text="独行快，众行远！并肩合作、共同克服困难，会走得更长远。搭子组队：一个帮助大家找到志同道合的伙伴的移动端H5网页"
+  />
+
+  <van-swipe :autoplay="3000" lazy-render>
+    <van-swipe-item v-for="image in images" :key="image" style="font-size: 30px; line-height: 20px; text-align: center;">
+      <img :src="image" alt="" style="width: 100%; height: auto; max-height: 200px; display: inline-block;">
+    </van-swipe-item>
+    <van-swipe-item style="font-size: 20px; line-height: 150px; text-align: center;">
+      广告位😜
+    </van-swipe-item>
+  </van-swipe>
+
   <van-cell center>
     <template #title>
-      <!-- 添加类名用于样式定位 -->
-      <span class="heart-mode-title">心动模式</span>
+      <span class="heart-mode-title2">搭子推荐</span>
     </template>
     <template #right-icon>
-      <van-switch v-model="isMatchMode" active-color="#FF69B4" inactive-color="#dcdee0"/>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="heart-mode-title" style="order: 1; margin-right: 8px;">心动模式</span>
+        <van-switch v-model="isMatchMode" active-color="#FF69B4" inactive-color="#dcdee0" style="order: 2;"/>
+      </div>
     </template>
   </van-cell>
 
@@ -113,9 +136,21 @@ watchEffect(() => {
   transition: all 0.3s ease; /* 添加平滑过渡效果 */
 }
 
+.heart-mode-title2 {
+  color: #37363b; /* 粉红色 */
+  font-weight: bold; /* 加粗 */
+  font-size: 18px; /* 字体大小 */
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* 使用更美观的字体，根据实际情况选择 */
+  transition: all 0.3s ease; /* 添加平滑过渡效果 */
+}
+
 /* 可选：添加一个鼠标悬停效果，让文字在鼠标悬停时变化 */
 .heart-mode-title:hover {
   color: #ff4081; /* 鼠标悬停时的颜色，稍微亮一点的粉红色 */
   text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3); /* 增强阴影效果 */
+}
+
+.heart-mode-container {
+  background-color: #FF69B4; /* 设置背景色为粉红色 */
 }
 </style>
