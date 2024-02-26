@@ -23,7 +23,7 @@ const searchTeam = async (val = '', teamStatus = 0) => {
   if (res?.code === 20000) {
     teamList.value = res.data;
   }else {
-    showFailToast('加载队伍失败，请刷新重试');
+    // showFailToast('加载队伍失败，请刷新重试');
   }
 }
 

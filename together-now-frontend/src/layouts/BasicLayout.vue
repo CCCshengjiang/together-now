@@ -2,6 +2,7 @@
 import {useRouter} from "vue-router";
 import {ref} from "vue";
 import routes from "../config/route.ts";
+import {getCurrentUser} from "../services/userServices.ts";
 
 const router = useRouter();
 const DEFAULT_TITLE = '伙伴匹配';
@@ -17,6 +18,8 @@ router.beforeEach((to) => {
 
 const onClickBack = () => history.back();
 const onClickSearch = () => {
+  const res = getCurrentUser();
+  console.log('res', res);
   router.push('/search')
 }
 </script>
