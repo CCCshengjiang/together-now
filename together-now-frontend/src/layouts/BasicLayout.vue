@@ -37,7 +37,7 @@ const onClickSearch = () => {
     <router-view/>
   </div>
   <van-tabbar route >
-    <van-tabbar-item to="/friends" icon="https://fastly.jsdelivr.net/npm/@vant/assets/icon-demo.png" name="friends">搭子</van-tabbar-item>
+    <van-tabbar-item to="/" icon="https://fastly.jsdelivr.net/npm/@vant/assets/icon-demo.png" name="friends">搭子</van-tabbar-item>
     <van-tabbar-item to="/team" icon="friends-o" name="team">队伍</van-tabbar-item>
     <van-tabbar-item to="/user" icon="setting-o" name="user">个人</van-tabbar-item>
   </van-tabbar>
