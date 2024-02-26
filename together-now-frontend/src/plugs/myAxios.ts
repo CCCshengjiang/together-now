@@ -1,10 +1,7 @@
 import axios, {AxiosInstance} from "axios";
 import {showConfirmDialog} from "vant";
-import {useRouter} from "vue-router";
 
 const isDev = process.env.NODE_ENV === 'development';
-
-const router = useRouter();
 
 const myAxios: AxiosInstance = axios.create({
     baseURL: isDev ? 'http://localhost:8080/api' : 'https://together-now-backend.cwblue.top/api',
