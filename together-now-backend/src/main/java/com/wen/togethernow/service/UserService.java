@@ -123,10 +123,9 @@ public interface UserService extends IService<User> {
      * 用户推荐的业务层接口
      *
      * @param pageRequest 接收前端的分页参数
-     * @param request     前端http请求
      * @return 返回脱敏的用户信息 + 用户总量
      */
-    PageUsersVO recommendUsers(PageRequest pageRequest, HttpServletRequest request);
+    PageUsersVO recommendUsers(PageRequest pageRequest);
 
     /**
      * 用户匹配的业务层接口

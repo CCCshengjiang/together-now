@@ -352,16 +352,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * 用户推荐的业务实现
      *
      * @param pageRequest 接收前端的分页参数
-     * @param request     前端http请求
      * @return 返回脱敏的用户列表 + 用户总量
      */
     @Override
-    public PageUsersVO recommendUsers(PageRequest pageRequest, HttpServletRequest request) {
-        if (pageRequest == null || request == null) {
+    public PageUsersVO recommendUsers(PageRequest pageRequest) {
+        if (pageRequest == null) {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
         // 参数校验
-        User currentUser = getCurrentUser(request);
         int pageNum = pageRequest.getPageNum();
         int pageSize = pageRequest.getPageSize();
         if (pageNum == 0 || pageSize == 0) {
@@ -371,16 +369,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         String redisKey = "togethernow:user:recommend";
         List<User> safetyUsers = (List<User>) redisTemplate.opsForValue().get(redisKey);
         if (safetyUsers != null) {
-            // 移除当前用户
-            removeCurrentUser(safetyUsers, currentUser);
+            // 分页
             return getPageUsers(pageSize, pageNum, safetyUsers);
         }
         // 缓存没有：从数据库中取数据写入缓存，最多取前1000条数据
         List<User> users = this.list().stream().limit(1000).toList();
         // 用户信息脱敏，并写入redis
         safetyUsers = safetyUsersToRedis(users, redisKey);
-        // 移除当前用户
-        removeCurrentUser(safetyUsers, currentUser);
         // 6.根据分页信息返回脱敏的用户列表
         return getPageUsers(pageSize, pageNum, safetyUsers);
     }

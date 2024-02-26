@@ -174,15 +174,14 @@ public class UserController {
     /**
      * 用户推荐
      *
-     * @param request 前端请求
      * @return 返回分页用户列表 + 用户总量
      */
     @GetMapping("/recommend")
-    public BaseResponse<PageUsersVO> recommendUsers(PageRequest pageRequest, HttpServletRequest request) {
-        if (request == null) {
+    public BaseResponse<PageUsersVO> recommendUsers(PageRequest pageRequest) {
+        if (pageRequest == null) {
             throw new BusinessException(PARAMS_NULL_ERROR);
         }
-        PageUsersVO pageUsersVO = userService.recommendUsers(pageRequest, request);
+        PageUsersVO pageUsersVO = userService.recommendUsers(pageRequest);
         return ReturnUtil.success(pageUsersVO);
     }
 
