@@ -136,6 +136,8 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             // 当前用户是否加入队伍
             Long teamId = team.getId();
             teamUserVO.setHasJoin(hasJoinTeamId.contains(teamId));
+            // 查询已加入的队伍的人数
+            teamUserVO.setHasJoinNum(getJoinNum(team));
             teamUserList.add(teamUserVO);
         }
         return teamUserList;
@@ -374,6 +376,22 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         }
         // 5. 删除队伍
         return this.removeById(teamRequestId);
+    }
+
+    /**
+     * 已经加入当前队伍的人数
+     *
+     * @param team 当前队伍
+     * @return 已加入人数
+     */
+    private int getJoinNum(Team team) {
+        if (team == null) {
+            throw new BusinessException(PARAMS_NULL_ERROR);
+        }
+        QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
+        userTeamQueryWrapper.select("team_id");
+        userTeamQueryWrapper.eq("team_id", team.getId());
+        return (int) userTeamService.count(userTeamQueryWrapper);
     }
 
     /**

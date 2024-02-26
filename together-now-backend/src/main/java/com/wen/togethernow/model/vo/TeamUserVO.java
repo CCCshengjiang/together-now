@@ -69,6 +69,11 @@ public class TeamUserVO implements Serializable {
      */
     private Boolean hasJoin;
 
+    /**
+     * 当前队伍已加入的人数
+     */
+    private Integer hasJoinNum;
+
     @Serial
     private static final long serialVersionUID = 7247578120918805413L;
 }
