@@ -19,6 +19,11 @@ const showEmail = (email: string) => showDialog({
   message: email ? email : '该用户未设置Email',
 });
 
+const showProfile = (userProfile: string) => showDialog({
+  title: '用户介绍',
+  message: userProfile ? userProfile : '该用户暂无介绍',
+});
+
 </script>
 
 <template>
@@ -34,6 +39,7 @@ const showEmail = (email: string) => showDialog({
         :desc="user.userProfile"
         :title="`${user.username} (编号：${user.idCode})`"
         :thumb="user.avatarUrl"
+        @click-thumb="showProfile(user.userProfile)"
     >
       <template #tags>
         <van-tag plain type="primary" v-for="tag in user.tags" :key="tag" style="margin-right: 8px; margin-top: 8px">

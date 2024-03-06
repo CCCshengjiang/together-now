@@ -2,7 +2,7 @@
 import {TeamType} from "../models/team";
 import {teamStatusEnum} from "../constants/team";
 import myAxios from "../plugs/myAxios";
-import {showFailToast, showSuccessToast} from "vant";
+import {showDialog, showFailToast, showSuccessToast} from "vant";
 import {getCurrentUser} from "../services/userServices.ts";
 import {onMounted, ref} from "vue";
 import {useRouter} from "vue-router";
@@ -99,6 +99,16 @@ function formatDate(dateString: string) {
   return `${year}年${month}月${day}日`;
 }
 
+const showProfile = (userProfile: string, captainEmail: string) => showDialog({
+  title: '队伍信息',
+  message: userProfile ? (`队伍介绍：${userProfile}` + '\n' + (captainEmail ? `联系队长：${captainEmail}` : '')) : '该队伍暂无介绍',
+});
+
+const showProfileNoEmail = (userProfile: string) => showDialog({
+  title: '队伍信息',
+  message: userProfile ? `队伍介绍：${userProfile}` : '该队伍暂无介绍',
+});
+
 </script>
 
 <template>
@@ -112,6 +122,7 @@ function formatDate(dateString: string) {
         :thumb="team?.captainUser?.avatarUrl"
         :desc="team.teamProfile"
         :title="`${team.teamName}`"
+        @click-thumb="team.hasJoin ? showProfile(team.teamProfile, team.captainUser?.email) : showProfileNoEmail(team.teamProfile)"
     >
       <template #tags>
         <van-tag plain v-if="Number(team.teamStatus) === 0" type="primary" style="margin-right: 8px; margin-top: 8px">
