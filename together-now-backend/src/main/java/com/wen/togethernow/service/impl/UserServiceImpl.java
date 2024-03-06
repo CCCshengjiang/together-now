@@ -373,7 +373,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             return getPageUsers(pageSize, pageNum, safetyUsers);
         }
         // 缓存没有：从数据库中取数据写入缓存，最多取前1000条数据
-        List<User> users = this.list().stream().limit(1000).toList();
+        List<User> users = this.list().stream().limit(100).toList();
         // 用户信息脱敏，并写入redis
         safetyUsers = safetyUsersToRedis(users, redisKey);
         // 6.根据分页信息返回脱敏的用户列表
@@ -411,7 +411,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         List<User> safetyUsers = getMatchUsers(currentUser);
         // 3.写入缓存，设置过期时间为5min
         try {
-            redisTemplate.opsForValue().set(redisKey, safetyUsers, 5, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(redisKey, safetyUsers, 60, TimeUnit.MINUTES);
         } catch (Exception e) {
             log.error("Redis set key error", e);
         }
@@ -454,7 +454,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         List<Map.Entry<Long, Integer>> sortedMatchUsers = getMatchUsers.entrySet()
                 .stream()
                 .sorted(Map.Entry.comparingByValue())
-                .limit(1000)
+                .limit(100)
                 .toList();
         // 5.根据分页信息返回脱敏的用户列表
         List<User> safetyUsers = new ArrayList<>();
