@@ -106,29 +106,13 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         }
         // 2. 从请求参数中取出队伍信息，如果存在则作为查询条件
         getTeamSearchQuery(teamSearchRequest, queryWrapper);
-        // 3. 队伍查询完成之后,判空
-        List<Team> teamListPre = list(queryWrapper);
-        if (teamListPre.isEmpty()) {
+        // 4. 队伍查询完成之后,判空
+        List<Team> teamList = list(queryWrapper);
+        if (teamList.isEmpty()) {
             return new ArrayList<>();
         }
-        //4. 不展示已过期的队伍（根据过期时间筛选）
-        List<Team> teamList = new ArrayList<>();
-        QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
-        for (Team team : teamListPre) {
-            if (team.getExpireTime().before(new Date())) {
-                Long teamId = team.getId();
-                // 删除关系表数据
-                userTeamQueryWrapper = new QueryWrapper<>();
-                userTeamQueryWrapper.select("team_id");
-                userTeamQueryWrapper.eq("team_id", teamId);
-                userTeamService.remove(userTeamQueryWrapper);
-                this.removeById(teamId);
-            }else {
-                teamList.add(team);
-            }
-        }
         // 5. 得到当前用户已加入的队伍id
-        userTeamQueryWrapper = new QueryWrapper<>();
+        QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
         userTeamQueryWrapper.eq("user_id", currentUser.getId());
         List<UserTeam> hasJoinTeam = userTeamService.list(userTeamQueryWrapper);
         Set<Long> hasJoinTeamId = new HashSet<>();

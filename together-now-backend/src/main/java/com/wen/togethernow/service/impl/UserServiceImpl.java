@@ -104,9 +104,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         user.setUserPassword(encryptPassword);
         user.setUserAccount(userAccount);
         user.setIdCode(idCode);
-        // 设置默认的用户头像和用户名
-        user.setAvatarUrl("https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fsafe-img.xhscdn.com%2Fbw1%2Fa4f5df9c-74df-4a6c-ac3b-5534a7626188%3FimageView2%2F2%2Fw%2F1080%2Fformat%2Fjpg&refer=http%3A%2F%2Fsafe-img.xhscdn.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=auto?sec=1712288564&t=59e1fb3c3bd5363b73952e1f9c616557");
-        user.setUsername(user.getUserAccount());
         boolean res = this.save(user);
         if (!res) {
             throw new BusinessException(PARAMS_ERROR, "注册失败");
@@ -375,8 +372,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             // 分页
             return getPageUsers(pageSize, pageNum, safetyUsers);
         }
-        // 缓存没有：从数据库中取数据写入缓存，最多取前500条数据
-        List<User> users = this.list().stream().limit(500).toList();
+        // 缓存没有：从数据库中取数据写入缓存，最多取前1000条数据
+        List<User> users = this.list().stream().limit(1000).toList();
         // 用户信息脱敏，并写入redis
         safetyUsers = safetyUsersToRedis(users, redisKey);
         // 6.根据分页信息返回脱敏的用户列表
@@ -414,7 +411,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         List<User> safetyUsers = getMatchUsers(currentUser);
         // 3.写入缓存，设置过期时间为5min
         try {
-            redisTemplate.opsForValue().set(redisKey, safetyUsers, 60, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(redisKey, safetyUsers, 5, TimeUnit.MINUTES);
         } catch (Exception e) {
             log.error("Redis set key error", e);
         }
@@ -457,7 +454,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         List<Map.Entry<Long, Integer>> sortedMatchUsers = getMatchUsers.entrySet()
                 .stream()
                 .sorted(Map.Entry.comparingByValue())
-                .limit(500)
+                .limit(1000)
                 .toList();
         // 5.根据分页信息返回脱敏的用户列表
         List<User> safetyUsers = new ArrayList<>();
@@ -499,7 +496,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         // 将查询到的数据写到缓存，设置过期时间为12h
         try {
-            redisTemplate.opsForValue().set(redisKey, safetyUsers, 1, TimeUnit.DAYS);
+            redisTemplate.opsForValue().set(redisKey, safetyUsers, 1440, TimeUnit.MINUTES);
         } catch (Exception e) {
             log.error("Redis set key error", e);
         }

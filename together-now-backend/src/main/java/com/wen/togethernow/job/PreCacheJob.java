@@ -38,7 +38,7 @@ public class PreCacheJob {
     /**
      * 主要用户的 id 集合
      */
-    private final List<Long> mainUsersId = LongStream.rangeClosed(0, 10)
+    private final List<Long> mainUsersId = LongStream.rangeClosed(0, 30)
             .boxed()
             .toList();
 
@@ -89,7 +89,7 @@ public class PreCacheJob {
                     List<User> matchUsers = userService.getMatchUsers(user);
                     // 将查询到的数据写到缓存，设置过期时间为：12h
                     try {
-                        redisTemplate.opsForValue().set(redisKey, matchUsers, 24, TimeUnit.HOURS);
+                        redisTemplate.opsForValue().set(redisKey, matchUsers, 12, TimeUnit.HOURS);
                     } catch (Exception e) {
                         log.error("Redis set key error", e);
                     }
