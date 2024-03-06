@@ -11,7 +11,7 @@ const initFormData = {
   "teamProfile": "",
   "maxNum": 3,
   "expireTime": "",
-  "teamStatus": 0,
+  "teamStatus": '0',
   "teamPassword": ""
 }
 
@@ -44,6 +44,10 @@ const onSubmit = async () => {
 </script>
 
 <template>
+  <!-- 文字较长时，通过禁用 scrollable 属性关闭滚动播放 -->
+  <van-notice-bar
+      text="队伍过期之后系统会自动删除，请根据需要选择合理的过期时间！"
+  />
   <div id="teamAddPage">
     <van-form @submit="onSubmit">
       <van-cell-group inset>
@@ -83,7 +87,6 @@ const onSubmit = async () => {
           <template #input>
             <van-radio-group v-model="addTeamData.teamStatus" direction="horizontal">
               <van-radio name="0">公开</van-radio>
-              <van-radio name="1">私有</van-radio>
               <div id="secret-row">
               <van-radio name="2">加密</van-radio>
               </div>

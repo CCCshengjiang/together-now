@@ -24,6 +24,7 @@ onMounted(async () => {
   });
   if (res?.code === 20000) {
     getTeamData.value = res.data;
+    getTeamData.value.teamStatus = String(getTeamData.value.teamStatus);
     result.value = getTeamData.value.expireTime; // 将过期时间赋给 result
   }else {
     showFailToast('加载队伍失败，请刷新重试');
@@ -55,6 +56,7 @@ const onSubmit = async () => {
     showFailToast('更新失败')
   }
 };
+
 </script>
 
 <template>
@@ -91,10 +93,10 @@ const onSubmit = async () => {
         <van-field name="radio" label="队伍状态">
           <template #input>
             <van-radio-group v-model="getTeamData.teamStatus" direction="horizontal">
-              <van-radio name="0">公开</van-radio>
-              <van-radio name="1">私有</van-radio>
+              <van-radio name='0'>公开</van-radio>
+              <van-radio name='1'>私有</van-radio>
               <div id="secret-row">
-                <van-radio name="2">加密</van-radio>
+                <van-radio name='2'>加密</van-radio>
               </div>
             </van-radio-group>
           </template>
