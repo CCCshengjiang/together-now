@@ -1,19 +1,14 @@
 <script setup lang="ts">
-
-import {useRouter} from "vue-router";
 import TeamCardList from "../../components/TeamCardList.vue";
 import {onMounted, ref} from "vue";
 import {showFailToast} from "vant";
 import myAxios from "../../plugs/myAxios.ts";
 
-const router = useRouter();
-const doAddTeam = () => {
-  router.push({
-    path: "/team/add",
-  })
-}
+const loading = ref(true);
+
 const teamList = ref([]);
 const searchTeam = async (val = '') => {
+  loading.value = true;
   const res = await myAxios.get("/team/search/captain", {
     params: {
       searchText: val,
@@ -24,6 +19,7 @@ const searchTeam = async (val = '') => {
   }else {
     showFailToast('加载队伍失败，请刷新重试');
   }
+  loading.value = false;
 }
 
 
@@ -37,8 +33,8 @@ onMounted( () =>{
 
 <template>
   <div id="teamPage">
-    <team-card-list :team-list="teamList"/>
-    <van-empty image="search" v-if="!teamList || teamList.length === 0" description="暂无符合要求队伍" />
+    <team-card-list :team-list="teamList" :loading="loading"/>
+    <van-empty image="search" v-if="!loading && (!teamList || teamList.length === 0)" description="暂无符合要求队伍" />
   </div>
 
 </template>

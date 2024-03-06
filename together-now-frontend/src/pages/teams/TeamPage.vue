@@ -3,8 +3,9 @@
 import {useRouter} from "vue-router";
 import TeamCardList from "../../components/TeamCardList.vue";
 import {onMounted, ref} from "vue";
-import {showFailToast} from "vant";
 import myAxios from "../../plugs/myAxios.ts";
+
+const loading = ref(true);
 
 const router = useRouter();
 const doAddTeam = () => {
@@ -14,6 +15,7 @@ const doAddTeam = () => {
 }
 const teamList = ref([]);
 const searchTeam = async (val = '', teamStatus = 0) => {
+  loading.value = true;
   const res = await myAxios.get("/team/search", {
     params: {
       searchText: val,
@@ -25,6 +27,7 @@ const searchTeam = async (val = '', teamStatus = 0) => {
   }else {
     // showFailToast('加载队伍失败，请刷新重试');
   }
+  loading.value = false;
 }
 
 
@@ -58,8 +61,8 @@ const onChangeTab = (name) => {
       <van-tab title="加密队伍" name="secret"/>
     </van-tabs>
     <van-button class="add-button" type="primary" icon="plus" @click="doAddTeam"/>
-    <team-card-list :team-list="teamList"/>
-    <van-empty image="search" v-if="!teamList || teamList.length === 0" description="暂无符合要求队伍" />
+    <team-card-list :team-list="teamList" :loading="loading"/>
+    <van-empty image="search" v-if="!loading && (!teamList || teamList.length === 0)" description="暂无符合要求队伍" />
   </div>
 
 </template>

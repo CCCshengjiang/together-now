@@ -16,6 +16,7 @@ const pageSize = ref(5); // 定义每页的大小
 const loadDate = async () => {
   loading.value = true;
   let searchUserList;
+  console.log('isMatchMode.value', isMatchMode.value)
   // 根据isMatchMode的值调用不同的API
   if (isMatchMode.value) {
     searchUserList = await myAxios.get('/user/match', {
@@ -62,7 +63,7 @@ const loadDate = async () => {
 // 监听isMatchMode变化
 watch(isMatchMode, () => {
   currentPage.value = 1; // 切换模式时重置为第一页
-  loadDate(); // 重新加载数据
+  // loadDate(); // 重新加载数据
 });
 
 watchEffect(() => {

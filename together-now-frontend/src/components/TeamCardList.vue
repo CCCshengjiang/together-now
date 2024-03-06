@@ -8,10 +8,12 @@ import {onMounted, ref} from "vue";
 import {useRouter} from "vue-router";
 
 interface teamCardListProps {
+  loading: boolean;
   teamList: TeamType[];
 }
 
 const props = withDefaults(defineProps<teamCardListProps>(), {
+      loading: true,
       // @ts-ignore
       teamList: [] as TeamType[],
     }
@@ -88,12 +90,6 @@ const doDisbandTeam = async (id: number) => {
   }
 }
 
-// 假设team是一个响应式引用
-const teamTime = ref({
-  expireTime: '2026-01-12T16:00:00.000+00:00',
-  createTime: '2024-02-05T12:00:00.000+00:00'
-});
-
 // 定义一个格式化日期时间的方法，只包含年月日
 function formatDate(dateString: string) {
   const date = new Date(dateString);
@@ -106,53 +102,59 @@ function formatDate(dateString: string) {
 </script>
 
 <template>
-  <van-card
-      v-for="team in props.teamList"
-      :thumb="team?.captainUser?.avatarUrl"
-      :desc="team.teamProfile"
-      :title="`${team.teamName}`"
-  >
-    <template #tags>
-      <van-tag plain v-if="Number(team.teamStatus) === 0" type="primary" style="margin-right: 8px; margin-top: 8px">
-        {{ teamStatusEnum[team.teamStatus] }}
-      </van-tag>
-      <van-tag plain v-if="Number(team.teamStatus) === 1" type="success" style="margin-right: 8px; margin-top: 8px">
-        {{ teamStatusEnum[team.teamStatus] }}
-      </van-tag>
-      <van-tag plain v-if="Number(team.teamStatus) === 2" type="danger" style="margin-right: 8px; margin-top: 8px">
-        {{ teamStatusEnum[team.teamStatus] }}
-      </van-tag>
-    </template>
-    <template #bottom>
-      <div>
-        {{ `队伍人数：${team.hasJoinNum} / ${team.maxNum}` }}
-      </div>
-      <div>
-        创建时间：{{ formatDate(teamTime.createTime) }}
-      </div>
-      <div>
-        过期时间：{{ formatDate(teamTime.expireTime) }}
-      </div>
-    </template>
-    <template #footer>
-      <van-button size="small" v-if="team.hasJoin === false" plain type="primary"
-                  @click="preJoinTeam(team)">加入队伍
-      </van-button>
-      <van-button size="small" v-if="team.userId === currentUser?.id" plain type="success"
-                  @click="doUpdateTeam(team.id)">更新队伍
-      </van-button>
-      <van-button size="small" v-if="team.hasJoin === true" plain type="warning"
-                  @click="doQuitTeam(team.id)">退出队伍
-      </van-button>
-      <van-button size="small" v-if="team.userId === currentUser?.id" plain type="danger"
-                  @click="doDisbandTeam(team.id)">解散队伍
-      </van-button>
-    </template>
-  </van-card>
-  <van-dialog v-model:show="showPasswordDialog" title="队伍密码" show-cancel-button @confirm="doJoinTeam" @cancel="doJoinCancel">
-    <van-field v-model="password" placeholder="请输入队伍密码"/>
-  </van-dialog>
-
+  <div v-if="loading">
+    <!-- 当数据正在加载时，显示3个骨架屏占位 -->
+    <van-skeleton title avatar :row="3" v-for="n in 5" :key="n"></van-skeleton>
+  </div>
+  <div v-else>
+    <van-card
+        v-for="team in props.teamList"
+        :thumb="team?.captainUser?.avatarUrl"
+        :desc="team.teamProfile"
+        :title="`${team.teamName}`"
+    >
+      <template #tags>
+        <van-tag plain v-if="Number(team.teamStatus) === 0" type="primary" style="margin-right: 8px; margin-top: 8px">
+          {{ teamStatusEnum[team.teamStatus] }}
+        </van-tag>
+        <van-tag plain v-if="Number(team.teamStatus) === 1" type="success" style="margin-right: 8px; margin-top: 8px">
+          {{ teamStatusEnum[team.teamStatus] }}
+        </van-tag>
+        <van-tag plain v-if="Number(team.teamStatus) === 2" type="danger" style="margin-right: 8px; margin-top: 8px">
+          {{ teamStatusEnum[team.teamStatus] }}
+        </van-tag>
+      </template>
+      <template #bottom>
+        <div>
+          {{ `队伍人数：${team.hasJoinNum} / ${team.maxNum}` }}
+        </div>
+        <div>
+          创建时间：{{ formatDate(team.createTime) }}
+        </div>
+        <div>
+          过期时间：{{ formatDate(team.expireTime) }}
+        </div>
+      </template>
+      <template #footer>
+        <van-button size="small" v-if="team.hasJoin === false" plain type="primary"
+                    @click="preJoinTeam(team)">加入队伍
+        </van-button>
+        <van-button size="small" v-if="team.userId === currentUser?.id" plain type="success"
+                    @click="doUpdateTeam(team.id)">更新队伍
+        </van-button>
+        <van-button size="small" v-if="team.hasJoin === true" plain type="warning"
+                    @click="doQuitTeam(team.id)">退出队伍
+        </van-button>
+        <van-button size="small" v-if="team.userId === currentUser?.id" plain type="danger"
+                    @click="doDisbandTeam(team.id)">解散队伍
+        </van-button>
+      </template>
+    </van-card>
+    <van-dialog v-model:show="showPasswordDialog" title="队伍密码" show-cancel-button @confirm="doJoinTeam"
+                @cancel="doJoinCancel">
+      <van-field v-model="password" placeholder="请输入队伍密码"/>
+    </van-dialog>
+  </div>
 </template>
 
 <style scoped>

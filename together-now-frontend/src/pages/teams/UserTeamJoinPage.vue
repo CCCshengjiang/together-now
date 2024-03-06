@@ -13,7 +13,11 @@ const doAddTeam = () => {
   })
 }
 const teamList = ref([]);
+
+const loading = ref(true);
+
 const searchTeam = async (val = '') => {
+  loading.value = true;
   const res = await myAxios.get("/team/search/join", {
     params: {
       searchText: val,
@@ -24,6 +28,7 @@ const searchTeam = async (val = '') => {
   }else {
     showFailToast('加载队伍失败，请刷新重试');
   }
+  loading.value = false;
 }
 
 
@@ -38,8 +43,8 @@ onMounted( () =>{
 <template>
   <div id="teamPage">
     <van-button type="primary" @click="doAddTeam">创建队伍</van-button>
-    <team-card-list :team-list="teamList"/>
-    <van-empty image="search" v-if="!teamList || teamList.length === 0" description="暂无符合要求队伍" />
+    <team-card-list :team-list="teamList" :loading="loading"/>
+    <van-empty image="search" v-if="!loading && (!teamList || teamList.length === 0)" description="暂无符合要求队伍" />
   </div>
 
 </template>
