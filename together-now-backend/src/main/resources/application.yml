@@ -3,8 +3,8 @@ spring:
     name: together-now-backend
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/together_now # 自己数据库地址
-    username: root # 自己数据库用户名
+    url: jdbc:mysql://47.120.48.23:3306/together_now # 自己数据库地址
+    username: wen # 自己数据库用户名
     password: 123456 # 自己数据库密码
   session:
     timeout: 86400
@@ -12,9 +12,10 @@ spring:
   data:
     redis:
       port: 6379
-      host: localhost
+      host: 47.120.48.23
       database: 1
-      timeout: # PT2H30M 设置session的过期时间为2h30min
+      timeout: PT2H30M # 设置session的过期时间为2h30min
+      password: 712812yj15
 
 # 配置端口号和全局访问路径
 server:
