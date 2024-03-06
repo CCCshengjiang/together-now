@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import {ref, watchEffect, watch} from "vue";
+import {ref, watchEffect, watch, onMounted} from "vue";
 import myAxios from "../plugs/myAxios.ts"
 import UserCardList from "../components/UserCardList.vue";
 import {UserType} from "../models/user";
+import {showDialog} from "vant";
+
 
 const userList = ref([])
 const isMatchMode = ref<boolean>(false);
@@ -16,7 +18,6 @@ const pageSize = ref(5); // 定义每页的大小
 const loadDate = async () => {
   loading.value = true;
   let searchUserList;
-  console.log('isMatchMode.value', isMatchMode.value)
   // 根据isMatchMode的值调用不同的API
   if (isMatchMode.value) {
     searchUserList = await myAxios.get('/user/match', {
@@ -71,26 +72,51 @@ watchEffect(() => {
 });
 
 const images = [
-  'https://gitee.com/CCCshengjiang/blog-img/raw/master/image/202402060011679.jpg',
-  'https://gitee.com/CCCshengjiang/blog-img/raw/master/image/202402060011340.jpg',
+  'https://img1.baidu.com/it/u=3028451851,2267400980&fm=253&fmt=auto&app=138&f=JPEG?w=533&h=300',
+  'https://img2.baidu.com/it/u=3301550489,3406573973&fm=253&fmt=auto&app=138&f=JPEG?w=800&h=500',
+  'https://img2.baidu.com/it/u=1964105560,4145185881&fm=253&fmt=auto&app=138&f=JPEG?w=889&h=500',
 ];
+
+onMounted(async ()=> {
+  if (!localStorage.getItem('methodExecuted')) {
+    // 在页面加载完成之后执行的方法
+    getTipsMessage();
+    // 将执行状态保存到localStorage中
+    localStorage.setItem('methodExecuted', String(true));
+  }
+})
+
+const getTipsMessage = () => {
+  showDialog({
+    title: '用法提示',
+    message: '独行快，众行远！' + '\n' + '\n' + '心动模式：匹配和自己标签相似用户' + '\n' + '\n' + '想要更多信息？ 点击头像试试吧' + '\n' + '\n' + '队伍页面右下角＋号按钮用于创建队伍',
+  });
+};
 
 </script>
 
 <template>
+  <van-floating-bubble
+      axis="xy"
+      icon="fire-o"
+      magnetic="x"
+      @click="getTipsMessage"
+  />
+
   <van-notice-bar
       color="#1989fa"
       background="#ecf9ff"
       left-icon="volume-o"
-      text="独行快，众行远！并肩合作、共同克服困难，会走得更长远。搭子组队：一个帮助大家找到志同道合的伙伴的移动端H5网页"
+      text="独行快，众行远！并肩合作、共同克服困难，会走得更长远。搭子组队：一个帮助大家找到志同道合的伙伴的移动端网页"
   />
 
   <van-swipe :autoplay="3000" lazy-render>
-    <van-swipe-item v-for="image in images" :key="image" style="font-size: 30px; line-height: 20px; text-align: center;">
+    <van-swipe-item v-for="image in images" :key="image"
+                    style="font-size: 30px; line-height: 20px; text-align: center;">
       <img :src="image" alt="" style="width: 100%; height: auto; max-height: 200px; display: inline-block;">
     </van-swipe-item>
     <van-swipe-item style="font-size: 20px; line-height: 150px; text-align: center;">
-      广告位😜
+      志同道合才能走得更快更远🎈
     </van-swipe-item>
   </van-swipe>
 
@@ -118,10 +144,10 @@ const images = [
       force-ellipses
   >
     <template #prev-text>
-      <van-icon name="arrow-left" />
+      <van-icon name="arrow-left"/>
     </template>
     <template #next-text>
-      <van-icon name="arrow" />
+      <van-icon name="arrow"/>
     </template>
     <template #page="{ text }">{{ text }}</template>
   </van-pagination>

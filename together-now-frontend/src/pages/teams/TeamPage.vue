@@ -30,7 +30,6 @@ const searchTeam = async (val = '', teamStatus = 0) => {
   loading.value = false;
 }
 
-
 // 加载时只触发一次
 onMounted( () =>{
   searchTeam();
@@ -43,13 +42,15 @@ const onSearch = (val) => {
 
 const active = ref('public');
 
-const onChangeTab = (name) => {
+const onChangeTab = (name: String) => {
   if (name == 'public') {
     searchTeam(searchText.value, 0);
   }else {
     searchTeam(searchText.value, 2);
   }
 }
+
+
 
 </script>
 
