@@ -96,12 +96,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         User currentUser = userService.getCurrentUser(request);
         // 3. 只有管理员才能查询私密的队伍,普通用户只能查询公开和加密的队伍
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
-        if (userService.isAdmin(currentUser)) {
-            Integer teamRequestStatus = teamSearchRequest.getTeamStatus();
-            if (teamRequestStatus != null) {
-                queryWrapper.eq("team_status", teamRequestStatus);
-            }
-        } else {
+        if (!userService.isAdmin(currentUser)) {
             queryWrapper.and(wrapper -> wrapper.ne("team_status", PRIVATE_TEAM_STATUS));
         }
         // 2. 从请求参数中取出队伍信息，如果存在则作为查询条件
@@ -480,6 +475,10 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         Integer maxNum = teamSearchRequest.getMaxNum();
         if (maxNum != null && maxNum > 0) {
             queryWrapper.eq("max_num", maxNum);
+        }
+        Integer teamStatus = teamSearchRequest.getTeamStatus();
+        if (teamStatus != null && (teamStatus == 0 || teamStatus == 1 || teamStatus == 2)) {
+            queryWrapper.eq("team_status", teamStatus);
         }
         //3. 不展示已过期的队伍（根据过期时间筛选）
         Date expireTime = teamSearchRequest.getExpireTime();

@@ -51,7 +51,7 @@ public class PreCacheJob {
         try {
             // 只抢一次抢不到就放弃，锁的过期时间：5min
             if (lock.tryLock(0, 5, TimeUnit.MINUTES)) {
-                List<User> userList = userService.list();
+                List<User> userList = userService.list().stream().limit(100).toList();
                 String redisKey = "togethernow:user:recommend";
                 // 将查询到的数据写到缓存，设置过期时间为：24h
                 try {

@@ -32,11 +32,6 @@ public class UserUpdateRequest implements Serializable {
     private Integer gender;
 
     /**
-     * 账号
-     */
-    private String userAccount;
-
-    /**
      * 密码
      */
     private String userPassword;
