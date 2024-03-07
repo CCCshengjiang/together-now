@@ -281,6 +281,26 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         if (status == PRIVATE_TEAM_STATUS) {
             throw new BusinessException(PARAMS_ERROR, "私密队伍不允许加入");
         }
+        // 分布式锁，保证只有一个线程能获取到锁
+        RLock lock = redissonClient.getLock("together:TeamServiceImpl:validateTeamInfo:lock");
+        try {
+            // 只抢一次抢不到就放弃，锁的过期时间：5min
+            if (lock.tryLock(0, 5, TimeUnit.MINUTES)) {
+                return joinTeamCondition(currentUser, teamRequestId, team);
+            }
+        } catch (InterruptedException e) {
+            log.error("validateTeamInfo error", e);
+            Thread.currentThread().interrupt();
+        } finally {
+            // 只能释放自己加的锁
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+        return false;
+    }
+
+    private boolean joinTeamCondition(User currentUser, Long teamRequestId, Team team) {
         //5. 用户最多或创建加入5个队伍
         QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
         Long userId = currentUser.getId();
@@ -505,64 +525,53 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
      * @param currentUser    当前登录用户
      */
     private void validateTeamInfo(TeamAddRequest teamAddRequest, User currentUser) {
-        RLock lock = redissonClient.getLock("together:TeamServiceImpl:validateTeamInfo:lock");
-        try {
-            // 只抢一次抢不到就放弃，锁的过期时间：3min
-            if (lock.tryLock(0, 3, TimeUnit.MINUTES)) {
-                //   1. 创建人最多创建和加入5个队伍
-                QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
-                queryWrapper.eq("user_id", currentUser.getId());
-                if (userTeamService.count(queryWrapper) >= 5) {
-                    throw new BusinessException(PARAMS_ERROR, "最多创建五个队伍");
-                }
-                //   2. 队伍人数【1-10】
-                Integer maxNum = teamAddRequest.getMaxNum();
-                if (maxNum == null || maxNum < 1 || maxNum > 20) {
-                    throw new BusinessException(PARAMS_ERROR, "队伍人数错误");
-                }
-                //   3. 队伍标题【1-20】
-                String teamName = teamAddRequest.getTeamName();
-                if (StringUtils.isBlank(teamName) || teamName.length() > 20) {
-                    throw new BusinessException(PARAMS_ERROR, "队伍标题错误");
-                }
-                //   4. 描述【0-512】
-                String teamProfile = teamAddRequest.getTeamProfile();
-                if (StringUtils.isNotBlank(teamProfile) && teamProfile.length() > 512) {
-                    throw new BusinessException(PARAMS_ERROR, "队伍介绍过长");
-                }
-                //   5. 是否公开（默认为0）
-                Integer teamStatus = teamAddRequest.getTeamStatus();
-                teamStatus = Optional.ofNullable(teamStatus).orElse(PUBLIC_TEAM_STATUS);
-                //   6. 加密状态，密码【1-32】
-                String teamPassword = teamAddRequest.getTeamPassword();
-                if (teamStatus == SECRET_TEAM_STATUS && (StringUtils.isBlank(teamPassword) || teamPassword.length() > 32)) {
-                    throw new BusinessException(PARAMS_ERROR, "密码不符合要求");
-                }
-                //   7. 超时时间 > 当前时间
-                Date expireTime = teamAddRequest.getExpireTime();
-                // 默认三天过期
-                expireTime = Optional.ofNullable(expireTime).orElseGet(() -> {
-                    Calendar calendar = Calendar.getInstance();
-                    calendar.setTime(new Date());
-                    calendar.add(Calendar.DATE, 3);
-                    return calendar.getTime();
-                });
-                if (new Date().after(expireTime)) {
-                    throw new BusinessException(PARAMS_ERROR, "过期时间不符合要求");
-                } else {
-                    teamAddRequest.setExpireTime(expireTime);
-                }
-            }
-        } catch (InterruptedException e) {
-            log.error("validateTeamInfo error", e);
-        } finally {
-            // 只能释放自己加的锁
-            if (lock.isHeldByCurrentThread()) {
-                lock.unlock();
-            }
-
+        // 1. 创建人最多创建和加入5个队伍
+        QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", currentUser.getId());
+        if (userTeamService.count(queryWrapper) >= 5) {
+            throw new BusinessException(PARAMS_ERROR, "最多创建五个队伍");
+        }
+        // 2. 队伍人数【1-10】
+        Integer maxNum = teamAddRequest.getMaxNum();
+        if (maxNum == null || maxNum < 1 || maxNum > 20) {
+            throw new BusinessException(PARAMS_ERROR, "队伍人数错误");
+        }
+        // 3. 队伍标题【1-20】
+        String teamName = teamAddRequest.getTeamName();
+        if (StringUtils.isBlank(teamName) || teamName.length() > 20) {
+            throw new BusinessException(PARAMS_ERROR, "队伍标题错误");
+        }
+        // 4. 描述【0-512】
+        String teamProfile = teamAddRequest.getTeamProfile();
+        if (StringUtils.isNotBlank(teamProfile) && teamProfile.length() > 512) {
+            throw new BusinessException(PARAMS_ERROR, "队伍介绍过长");
+        }
+        // 5. 是否公开（默认为0）
+        Integer teamStatus = teamAddRequest.getTeamStatus();
+        teamStatus = Optional.ofNullable(teamStatus).orElse(PUBLIC_TEAM_STATUS);
+        // 6. 加密状态，密码【1-32】
+        String teamPassword = teamAddRequest.getTeamPassword();
+        if (teamStatus == SECRET_TEAM_STATUS && (StringUtils.isBlank(teamPassword) || teamPassword.length() > 32)) {
+            throw new BusinessException(PARAMS_ERROR, "密码不符合要求");
+        }
+        // 7. 超时时间 > 当前时间
+        Date expireTime = teamAddRequest.getExpireTime();
+        // 默认三天过期
+        expireTime = Optional.ofNullable(expireTime).orElseGet(() -> {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(new Date());
+            calendar.add(Calendar.DATE, 3);
+            return calendar.getTime();
+        });
+        if (new Date().after(expireTime)) {
+            throw new BusinessException(PARAMS_ERROR, "过期时间不符合要求");
+        } else {
+            teamAddRequest.setExpireTime(expireTime);
+        }
     }
 }
+
+
 
 
 

@@ -62,6 +62,7 @@ public class PreCacheJob {
             }
         } catch (InterruptedException e) {
             log.error("doPreCacheRecommend error", e);
+            Thread.currentThread().interrupt();
         } finally {
             // 只能释放自己加的锁
             if (lock.isHeldByCurrentThread()) {
@@ -97,6 +98,7 @@ public class PreCacheJob {
             }
         } catch (InterruptedException e) {
             log.error("doPreCacheMatch error", e);
+            Thread.currentThread().interrupt();
         } finally {
             // 只能释放自己加的锁
             if (lock.isHeldByCurrentThread()) {
