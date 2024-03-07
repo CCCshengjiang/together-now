@@ -30,7 +30,7 @@ const doJoinCancel = () => {
 
 const preJoinTeam = (team: TeamType) => {
   curTeamId.value = team.id;
-  if (team.teamStatus === teamStatusEnum['0']) {
+  if (team.teamStatus === 0) {
     doJoinTeam();
   } else {
     showPasswordDialog.value = true;
@@ -48,6 +48,7 @@ const doJoinTeam = async () => {
   if (res?.code === 20000) {
     showSuccessToast('加入队伍成功');
     doJoinCancel();
+    location.reload();
   } else {
     showFailToast('加入队伍失败' + (res.description ? `. ${res.description}` : ``));
   }
@@ -74,6 +75,7 @@ const doQuitTeam = async (id: number) => {
   });
   if (res?.code === 20000) {
     showSuccessToast('退出队伍成功')
+    location.reload();
   } else {
     showFailToast('退出队伍失败' + (res.description ? `. ${res.description}` : ``))
   }
@@ -85,6 +87,7 @@ const doDisbandTeam = async (id: number) => {
   });
   if (res?.code === 20000) {
     showSuccessToast('解散队伍成功')
+    location.reload();
   } else {
     showFailToast('解散队伍失败' + (res.description ? `. ${res.description}` : ``))
   }
