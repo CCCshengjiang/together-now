@@ -104,6 +104,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         user.setUserPassword(encryptPassword);
         user.setUserAccount(userAccount);
         user.setIdCode(idCode);
+        user.setAvatarUrl("https://img1.baidu.com/it/u=2985396150,1670050748&fm=253&app=120&size=w931&n=0&f=JPEG&fmt=auto?sec=1710003600&t=5293756f92c3a6922e0540ee28503bfd");
         boolean res = this.save(user);
         if (!res) {
             throw new BusinessException(PARAMS_ERROR, "注册失败");
