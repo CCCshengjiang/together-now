@@ -31,6 +31,14 @@ const toUserRegister = () => {
 </script>
 
 <template>
+  <van-notice-bar
+      color="#1989fa"
+      background="#ecf9ff"
+      left-icon="info-o"
+      wrapable
+      :scrollable="false"
+      >为了更好的使用本系统，现提供体验账号如下,
+    账号:admin 密码:admin888</van-notice-bar>
   <div class="user-login-index">
     <van-form @submit="onSubmit">
       <van-cell-group inset>

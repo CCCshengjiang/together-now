@@ -41,7 +41,7 @@ function padZero(num: number) {
   <div v-if="user">
     <van-cell title="编号" :value="user.idCode" />
     <van-cell title="账号" :value="user.userAccount" />
-    <van-cell title="头像" is-link to="/user/edit" @click="toEdit('avatarUrl', '头像', user.avatarUrl)">
+    <van-cell title="头像" is-link to="/user/edit" @click="toEdit('avatarUrl', '头像地址', user.avatarUrl)">
       <img style="height: 47px" :src="user.avatarUrl" alt=""/>
     </van-cell>
     <van-cell title="用户名" is-link to="/user/edit" :value="user.username" @click="toEdit('username', '用户名', user.username)" />
