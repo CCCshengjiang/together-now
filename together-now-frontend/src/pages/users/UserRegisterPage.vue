@@ -25,6 +25,10 @@ const onSubmit = async () => {
   // console.log('登录', res);
   if (res.code === 20000 && res.data) {
     showSuccessToast('注册成功');
+    await myAxios.post('/user/login', {
+      userAccount: userAccount.value,
+      userPassword: userPassword.value,
+    })
     window.location.href = route.query?.refirect as string ?? '/';
   } else {
     showFailToast('注册失败');
