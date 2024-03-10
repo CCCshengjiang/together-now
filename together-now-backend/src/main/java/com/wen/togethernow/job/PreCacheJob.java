@@ -38,14 +38,14 @@ public class PreCacheJob {
     /**
      * 主要用户的 id 集合
      */
-    private final List<Long> mainUsersId = LongStream.rangeClosed(0, 30)
+    private final List<Long> mainUsersId = LongStream.rangeClosed(0, 2)
             .boxed()
             .toList();
 
     /**
      * 每天凌晨两点执行，预热推荐用户
      */
-    @Scheduled(cron = "0 0 2 * * *")
+    @Scheduled(cron = "0 58 16 * * *")
     public void doPreCacheRecommend() {
         RLock lock = redissonClient.getLock("together:preCacheJob:doPreCacheRecommend:lock");
         try {
@@ -54,11 +54,7 @@ public class PreCacheJob {
                 List<User> userList = userService.list().stream().limit(100).toList();
                 String redisKey = "togethernow:user:recommend";
                 // 将查询到的数据写到缓存，设置过期时间为：24h
-                try {
-                    redisTemplate.opsForValue().set(redisKey, userList, 24, TimeUnit.HOURS);
-                } catch (Exception e) {
-                    log.error("Redis set key error", e);
-                }
+                userService.safetyUsersToRedis(userList, redisKey);
             }
         } catch (InterruptedException e) {
             log.error("doPreCacheRecommend error", e);

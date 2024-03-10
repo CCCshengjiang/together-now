@@ -59,5 +59,5 @@ public class Tag implements Serializable {
 
     @Serial
     @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 3918595987109789807L;
 }

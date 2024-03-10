@@ -25,6 +25,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -283,7 +284,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * 使用缓存根据标签查询用户
      *
      * @param tagNameList 标签名
-     * @param request 前端请求
+     * @param request     前端请求
      * @return 查询到的脱敏用户列表
      */
     @Override
@@ -298,7 +299,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (users == null) {
             List<User> originUsers = this.list();
             // 用户信息脱敏 + 写入缓存
-            users =  safetyUsersToRedis(originUsers, redisKey);
+            users = safetyUsersToRedis(originUsers, redisKey);
             removeCurrentUser(users, this.getCurrentUser(request));
         }
         // 根据标签查询
@@ -378,7 +379,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 缓存没有：从数据库中取数据写入缓存，最多取前1000条数据
         List<User> users = this.list().stream().limit(100).toList();
         // 用户信息脱敏，并写入redis
-        safetyUsers = safetyUsersToRedis(users, redisKey);
+        safetyUsers = this.safetyUsersToRedis(users, redisKey);
         // 6.根据分页信息返回脱敏的用户列表
         return getPageUsers(pageSize, pageNum, safetyUsers);
     }
@@ -486,20 +487,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     /**
-     * 将用户信息脱敏并写入redis
+     * 将用户信息脱敏并写入 redis
      *
      * @param originUsers 原始用户列表
-     * @param redisKey redis的key
+     * @param redisKey    redis的 key
      * @return 脱敏的用户列表
      */
-    private List<User> safetyUsersToRedis(List<User> originUsers, String redisKey) {
+    @Override
+    public List<User> safetyUsersToRedis(List<User> originUsers, String redisKey) {
         List<User> safetyUsers = new ArrayList<>();
         for (User user : originUsers) {
             safetyUsers.add(this.getSafetyUser(user));
         }
         // 将查询到的数据写到缓存，设置过期时间为12h
         try {
-            redisTemplate.opsForValue().set(redisKey, safetyUsers, 1440, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(redisKey, safetyUsers, 24, TimeUnit.HOURS);
         } catch (Exception e) {
             log.error("Redis set key error", e);
         }
@@ -509,8 +511,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     /**
      * 返回分页结果
      *
-     * @param pageSize 页数大小
-     * @param pageNum 页数
+     * @param pageSize    页数大小
+     * @param pageNum     页数
      * @param safetyUsers 脱敏的用户列表
      * @return 脱敏的用户信息 + 用户总量
      */
@@ -520,7 +522,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         int end = start + pageSize;
         int total = safetyUsers.size();
         List<User> res = new ArrayList<>();
-        for (int i = start;i < total && i < end; i++) {
+        for (int i = start; i < total && i < end; i++) {
             User user = safetyUsers.get(i);
             res.add(user);
         }

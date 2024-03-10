@@ -74,5 +74,5 @@ public class Team implements Serializable {
 
     @Serial
     @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 7720026160249089532L;
 }

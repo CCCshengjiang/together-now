@@ -96,6 +96,15 @@ public interface UserService extends IService<User> {
     int updateUser(UserUpdateRequest userUpdateRequest, HttpServletRequest request);
 
     /**
+     * 将用户信息脱敏并保存到 Redis中
+     *
+     * @param originUsers 原始用户数据
+     * @param redisKey redis 的key
+     * @return 列表
+     */
+    List<User> safetyUsersToRedis(List<User> originUsers, String redisKey);
+
+    /**
      * 用户脱敏的业务层接口
      *
      * @param userPageList 分页的用户列表
